@@ -1,3 +1,11 @@
+# directories
+FullSim/test/batch/
+
+# binary files
+*.root
+*.png
+*.pyc
+
 # Compiled Object files
 *.slo
 *.lo

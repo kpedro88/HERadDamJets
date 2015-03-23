@@ -31,8 +31,8 @@ cat ./jobExecCondor.jdl \
 | sed -e s/JOBNAME/DiJet_DIGI_RECO_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}/ \
 | sed -e s/CMSSWVER/${CMSSW_VERSION}/ \
 | sed -e s~OUTDIR~${OUTDIR}~ \
-> ${JOBDIR}/jobExecCondor_DiJet_GEN_SIM_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
+> ${JOBDIR}/jobExecCondor_DiJet_DIGI_RECO_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
 
 cd ${JOBDIR}
-condor_submit jobExecCondor_DiJet_GEN_SIM_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
+condor_submit jobExecCondor_DiJet_DIGI_RECO_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
 cd -
