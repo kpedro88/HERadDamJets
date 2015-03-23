@@ -2,6 +2,7 @@
 
 KEEPTAR=$1
 NUM=500
+PART=200
 ENERGY=30
 JOBDIR=batch
 OUTDIR=root://cmseos.fnal.gov//store/user/pedrok/raddam/tree
