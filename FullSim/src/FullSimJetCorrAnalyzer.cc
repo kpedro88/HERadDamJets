@@ -81,6 +81,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	double pf_min_pt = 0;
 	if(gen1 != h_GenJets->end()){
 		//store the genjet vars
+		e_gen_en = gen1->energy();
 		e_gen_pt = gen1->pt();
 		e_gen_eta = gen1->eta();
 		e_gen_phi = gen1->phi();
@@ -119,6 +120,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	//if a matching CaloJet was found, store its vars
 	//with noise offset correction applied to pT (raw pT also stored)
 	if(calo1 != h_CaloJets->end()){
+		e_calo_en = calo1->energy();
 		e_calo_pt = calo1->pt();
 		e_calo_eta = calo1->eta();
 		e_calo_phi = calo1->phi();
@@ -128,6 +130,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	
 	//if a matching PFJet was found, store its vars
 	if(pf1 != h_PFJets->end()){
+		e_pf_en = pf1->energy();
 		e_pf_pt = pf1->pt();
 		e_pf_eta = pf1->eta();
 		e_pf_phi = pf1->phi();
@@ -152,15 +155,18 @@ void
 FullSimJetCorrAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
 	out_file = new TFile(outname.c_str(), "RECREATE");
 	tree_tot = new TTree("Total", "Energy Calorimeter info");
+	tree_tot->Branch("GenJetEnergy",&e_gen_en,"e_gen_en/D");
 	tree_tot->Branch("GenJetPt",&e_gen_pt,"e_gen_pt/D");
 	tree_tot->Branch("GenJetEta",&e_gen_eta,"e_gen_eta/D");
 	tree_tot->Branch("GenJetPhi",&e_gen_phi,"e_gen_phi/D");
 	tree_tot->Branch("GenJetArea",&e_gen_area,"e_gen_area/D");
+	tree_tot->Branch("CaloJetEnergy",&e_calo_en,"e_calo_en/D");
 	tree_tot->Branch("CaloJetPt",&e_calo_pt,"e_calo_pt/D");
 	tree_tot->Branch("CaloJetEta",&e_calo_eta,"e_calo_eta/D");
 	tree_tot->Branch("CaloJetPhi",&e_calo_phi,"e_calo_phi/D");
 	tree_tot->Branch("CaloJetArea",&e_calo_area,"e_calo_area/D");
 	tree_tot->Branch("CaloDeltaR",&e_dr_match_calo,"e_dr_match_calo/D");
+	tree_tot->Branch("PFJetEnergy",&e_pf_en,"e_pf_en/D");
 	tree_tot->Branch("PFJetPt",&e_pf_pt,"e_pf_pt/D");
 	tree_tot->Branch("PFJetEta",&e_pf_eta,"e_pf_eta/D");
 	tree_tot->Branch("PFJetPhi",&e_pf_phi,"e_pf_phi/D");

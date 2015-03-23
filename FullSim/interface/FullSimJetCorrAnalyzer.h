@@ -42,9 +42,9 @@ class FullSimJetCorrAnalyzer : public edm::EDAnalyzer {
 		TFile* out_file;
 		TTree* tree_tot;
 		double dRcut;
-		double e_calo_pt, e_calo_eta, e_calo_phi, e_calo_area;
-		double e_pf_pt, e_pf_eta, e_pf_phi, e_pf_area;
-		double e_gen_pt, e_gen_eta, e_gen_phi, e_gen_area;
+		double e_calo_en, e_calo_pt, e_calo_eta, e_calo_phi, e_calo_area;
+		double e_pf_en, e_pf_pt, e_pf_eta, e_pf_phi, e_pf_area;
+		double e_gen_en, e_gen_pt, e_gen_eta, e_gen_phi, e_gen_area;
 		double e_dr_match_pf, e_dr_match_calo;
 		std::string outname;
 
