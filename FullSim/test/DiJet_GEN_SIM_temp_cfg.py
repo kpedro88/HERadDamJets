@@ -31,7 +31,9 @@ process.maxEvents = cms.untracked.PSet(
 process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint32(NEVENT+NPART)
 
 # Input source
-process.source = cms.Source("EmptySource")
+process.source = cms.Source("EmptySource",
+    firstRun = cms.untracked.uint32(NPART)
+)
 
 process.options = cms.untracked.PSet(
 
