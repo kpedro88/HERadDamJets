@@ -116,7 +116,7 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 			}
 		}
 		
-		if(!match_gen){			
+		if(!match_gen){
 			//loop over calotowers
 			if(bCT){
 				for (CaloTowerCollection::const_iterator hit = CaloTowers->begin(); hit!=CaloTowers->end(); ++hit) {
@@ -143,16 +143,7 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-FullSimNoiseAnalyzer::beginJob() { }
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-FullSimNoiseAnalyzer::endJob() {
-}
-
-// ------------ method called when starting to processes a run  ------------
-void 
-FullSimNoiseAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
+FullSimNoiseAnalyzer::beginJob() {
 	out_file = new TFile(outname.c_str(), "RECREATE");
 	tree_tot = new TTree("Total", "Energy Calorimeter info");
 	tree_tot->Branch("GenJetEta",&e_gen_eta,"e_gen_eta/D");
@@ -163,14 +154,24 @@ FullSimNoiseAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
 	tree_tot->Branch("PFNoisePt",&e_pf_noise_pt,"e_pf_noise_pt/D");
 }
 
-// ------------ method called when ending the processing of a run  ------------
+// ------------ method called once each job just after ending the event loop  ------------
 void 
-FullSimNoiseAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) { 
+FullSimNoiseAnalyzer::endJob() {
 	out_file->cd();
 	
 	tree_tot->Write();
 	
 	out_file->Close();
+}
+
+// ------------ method called when starting to processes a run  ------------
+void 
+FullSimNoiseAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
+}
+
+// ------------ method called when ending the processing of a run  ------------
+void 
+FullSimNoiseAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) { 
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------

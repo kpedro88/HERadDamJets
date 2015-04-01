@@ -143,16 +143,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-FullSimJetCorrAnalyzer::beginJob() { }
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-FullSimJetCorrAnalyzer::endJob() {
-}
-
-// ------------ method called when starting to processes a run  ------------
-void 
-FullSimJetCorrAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
+FullSimJetCorrAnalyzer::beginJob() {
 	out_file = new TFile(outname.c_str(), "RECREATE");
 	tree_tot = new TTree("Total", "Energy Calorimeter info");
 	tree_tot->Branch("GenJetEnergy",&e_gen_en,"e_gen_en/D");
@@ -174,14 +165,24 @@ FullSimJetCorrAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
 	tree_tot->Branch("PFDeltaR",&e_dr_match_pf,"e_dr_match_pf/D");
 }
 
-// ------------ method called when ending the processing of a run  ------------
+// ------------ method called once each job just after ending the event loop  ------------
 void 
-FullSimJetCorrAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) { 
+FullSimJetCorrAnalyzer::endJob() {
 	out_file->cd();
 	
 	tree_tot->Write();
 	
 	out_file->Close();
+}
+
+// ------------ method called when starting to processes a run  ------------
+void 
+FullSimJetCorrAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&) {
+}
+
+// ------------ method called when ending the processing of a run  ------------
+void 
+FullSimJetCorrAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) { 
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------
