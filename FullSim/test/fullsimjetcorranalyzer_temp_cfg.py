@@ -25,7 +25,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.demo = cms.EDAnalyzer('FullSimJetCorrAnalyzer',
-    fileName = cms.string("tree_jet_20YEAR_ENERGYIN_lumiLUMIDRK.root"),
+    fileName = cms.string("tree_jet_20YEAR_ptENERGYIN_lumiLUMIDRK.root"),
 	dRcut = cms.double(0.3)
 )
 
