@@ -20,7 +20,7 @@ fi
 
 for YEAR in 17 19
   do
-    for PART in {1..40}
+    for PART in {1..200}
       do
         ./FStemp_gensim.sh ${JOBDIR} ${OUTDIR} ${YEAR} ${ENERGY} ${NUM} ${PART}
       done

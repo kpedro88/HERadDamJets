@@ -20,10 +20,11 @@ fi
 
 for YEAR in 17 19
   do
-    for PART in {1..40}
+    for PART in {1..200}
       do
         for LUMI in 0 50 100 150 300 500
           do
             ./FStemp_digireco.sh ${JOBDIR} ${OUTDIR} ${YEAR} ${ENERGY} ${LUMI} ${NUM} ${PART}
+          done
       done
   done
