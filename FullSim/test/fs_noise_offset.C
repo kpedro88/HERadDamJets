@@ -212,10 +212,10 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 
 //----------------------------------------------------------------
 //function to make text file with offsets for each lumi and year
-void print_offsets(string algo, Int_t year, Double_t energy, Double_t lumi){
+void print_offsets(string dir, string algo, Int_t year, Double_t energy, Double_t lumi){
 	//open output file
 	stringstream outname;
-	outname << "era" << year << "_age" << lumi << "_MC_L1Offset_AK5" << algo << ".txt";
+	outname << dir << "/" << "era" << year << "age" << lumi << "_V1_MC_L1Offset_AK5" << algo << ".txt";
 	ofstream output((outname.str()).c_str());
 	if (!output) {
 		cerr << "Cannot open the output file " << outname << "\n";
@@ -223,7 +223,7 @@ void print_offsets(string algo, Int_t year, Double_t energy, Double_t lumi){
 	}
 	
 	//print header
-	output << "{1 JetEta 1 JetA max(0.0001,1-[0]*x) Correction L1FastJet}" << endl;
+	output << "{1 JetEta 1 JetA max(0.0001,1-[0]*x) Correction L1Offset}" << endl;
 	
 	//get prof from above function
 	TProfile* hprof = get_noise(algo,year,energy,lumi,0);
@@ -247,11 +247,11 @@ void print_offsets(string algo, Int_t year, Double_t energy, Double_t lumi){
 
 //----------------------------------------------------------------
 //function to make all text files
-void print_all(){
+void print_all(string dir="corrections"){
 	for(int j = 0; j < maxHDlumi; j++){
-		print_offsets("Calo",2017,30,lumis[j]);
-		print_offsets("Calo",2019,30,lumis[j]);
-		print_offsets("PF",2017,30,lumis[j]);
-		print_offsets("PF",2019,30,lumis[j]);
+		print_offsets(dir,"Calo",2017,30,lumis[j]);
+		print_offsets(dir,"Calo",2019,30,lumis[j]);
+		print_offsets(dir,"PF",2017,30,lumis[j]);
+		print_offsets(dir,"PF",2019,30,lumis[j]);
 	}
 }

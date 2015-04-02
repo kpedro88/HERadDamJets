@@ -1,5 +1,6 @@
 # directories
 FullSim/test/batch/
+FullSim/test/corrections/
 
 # binary files
 *.root
