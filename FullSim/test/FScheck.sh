@@ -14,6 +14,10 @@ PCHECK=`voms-proxy-info --all | grep "timeleft  : 00:00:00"`
 if [ -n "$PCHECK" ]; then
   voms-proxy-init -voms cms --valid 168:00
 fi
+PCHECK=`voms-proxy-info --all | grep "timeleft  : 0:00:00"`
+if [ -n "$PCHECK" ]; then
+  voms-proxy-init -voms cms --valid 168:00
+fi
 
 # tarball of CMSSW area
 if [ -z "$KEEPTAR" ]; then
