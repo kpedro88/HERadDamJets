@@ -215,7 +215,7 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 void print_offsets(string dir, string algo, Int_t year, Double_t energy, Double_t lumi){
 	//open output file
 	stringstream outname;
-	outname << dir << "/" << "era" << year << "age" << lumi << "_V1_MC_L1Offset_AK5" << algo << ".txt";
+	outname << dir << "/" << "era" << year << "age" << lumi << "_V1_L1Offset_AK5" << algo << ".txt";
 	ofstream output((outname.str()).c_str());
 	if (!output) {
 		cerr << "Cannot open the output file " << outname << "\n";
