@@ -16,6 +16,7 @@ if [ "$LUMI" -gt 500 ]; then
 fi
 
 mkdir -p ${JOBDIR}
+JOBNAME=${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}
 
 cat ./${FPRE}_temp_cfg.py \
 | sed -e s/CMSSWVER/${CMSSW_VERSION}/g \
@@ -25,24 +26,24 @@ cat ./${FPRE}_temp_cfg.py \
 | sed -e s/INSTLUMI/${ILUMI}/g \
 | sed -e s/NEVENT/${NEVENT}/g \
 | sed -e s/NPART/${NPART}/g \
-> ${JOBDIR}/${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py
+> ${JOBDIR}/${JOBNAME}.py
 
 if [ -z "$JUSTRUN" ]; then
   echo ""
-  echo ">> `/bin/date` Submitting condor job : ${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py"
+  echo ">> `/bin/date` Submitting condor job : ${JOBNAME}"
 
   cat ./jobExecCondor.jdl \
-  | sed -e s/JOBNAME/${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}/g \
+  | sed -e s/JOBNAME/${JOBNAME}/g \
   | sed -e s/CMSSWVER/${CMSSW_VERSION}/g \
   | sed -e s~OUTDIR~${OUTDIR}~g \
-  > ${JOBDIR}/jobExecCondor_${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
+  > ${JOBDIR}/jobExecCondor_${JOBNAME}.jdl
   
   cd ${JOBDIR}
-  condor_submit jobExecCondor_${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.jdl
+  condor_submit jobExecCondor_${JOBNAME}.jdl
   cd -
 else
   echo ""
-  echo ">> `/bin/date` Running job : ${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py"
+  echo ">> `/bin/date` Running job : ${JOBNAME}"
 
-  cmsRun ${JOBDIR}/${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py
+  cmsRun ${JOBDIR}/${JOBNAME}.py
 fi
