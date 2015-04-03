@@ -44,11 +44,11 @@ process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 # apply the JECs
 process.ak5CaloJetsL1FastL2L3 = cms.EDProducer('CaloJetCorrectionProducer',
     src = cms.InputTag('ak5CaloJets'),
-    correctors = cms.vstring('ak5CaloL1FastL2L3')
+    correctors = cms.vstring('AK5Calo')
 )
 process.ak5PFJetsL1FastL2L3 = cms.EDProducer('PFJetCorrectionProducer',
     src = cms.InputTag('ak5PFJets'),
-    correctors = cms.vstring('ak5PFL1FastL2L3')
+    correctors = cms.vstring('AK5PF')
 )
 
 # run the analyzer
