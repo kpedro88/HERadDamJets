@@ -18,6 +18,7 @@ fi
 mkdir -p ${JOBDIR}
 
 cat ./${FPRE}_temp_cfg.py \
+| sed -e s/CMSSWVER/${CMSSW_VERSION}/g \
 | sed -e s/YEAR/${YEAR}/g \
 | sed -e s/ENERGYIN/${ENERGY}/g \
 | sed -e s/LUMIDRK/${LUMI}/g \
