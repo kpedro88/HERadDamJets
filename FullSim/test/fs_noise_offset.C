@@ -26,9 +26,8 @@
 #include <cmath>
 
 #define maxHDe 1
-#define maxHDlumi 5
-//#define maxHDlumi 6
-#define maxHDeta 82
+#define maxHDlumi 6
+#define maxHDeta 60
 #define maxPrint 2
 
 using namespace std;
@@ -36,10 +35,8 @@ using namespace std;
 //global variables
 string fdir = "root://cmseos.fnal.gov//store/user/pedrok/raddam/tree";
 Double_t energies[] = {30};
-Double_t lumis[] = {0, 100, 150, 300, 500};
-//Double_t lumis[] = {0, 50, 100, 150, 300, 500};
-Double_t binseta[] ={-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664,
-					 -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172,
+Double_t lumis[] = {0, 50, 100, 150, 300, 500};
+Double_t binseta[] ={-3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172,
 					 -2.043, -1.930, -1.830, -1.740, -1.653, -1.566, -1.479, -1.392, -1.305,
 					 -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522,
 					 -0.435, -0.348, -0.261, -0.174, -0.087,
@@ -47,8 +44,7 @@ Double_t binseta[] ={-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.
 					 +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783,
 					 +0.879, +0.957, +1.044, +1.131, +1.218, +1.305, +1.392, +1.479, +1.566,
 					 +1.653, +1.740, +1.830, +1.930, +2.043, +2.172, +2.322, +2.500, +2.650,
-					 +2.853, +2.964, +3.139, +3.314, +3.489, +3.664, +3.839, +4.013, +4.191,
-					 +4.363, +4.538, +4.716, +4.889, +5.191};
+					 +2.853, +2.964, +3.139};
 Int_t years[] = {2017, 2019};
 
 //NB: in this file, "energies" refers to pT
@@ -165,7 +161,7 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 	pave->SetTextSize(0.05);
 	
 	std::stringstream luminames[maxHDlumi];
-	TLegend *leg = new TLegend(0.7,0.78,0.9,0.89);
+	TLegend *leg = new TLegend(0.7,0.89-0.05*maxHDlumi,0.9,0.89);
 	leg->SetFillColor(0);
 	leg->SetBorderSize(0);
 	leg->SetTextSize(0.05);
@@ -215,7 +211,7 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 void print_offsets(string dir, string algo, Int_t year, Double_t energy, Double_t lumi){
 	//open output file
 	stringstream outname;
-	outname << dir << "/" << "era" << year << "age" << lumi << "_V1_L1Offset_AK5" << algo << ".txt";
+	outname << dir << "/" << "era" << year << "age" << lumi << "_V1_L1FastJet_AK5" << algo << ".txt";
 	ofstream output((outname.str()).c_str());
 	if (!output) {
 		cerr << "Cannot open the output file " << outname << "\n";
@@ -223,17 +219,19 @@ void print_offsets(string dir, string algo, Int_t year, Double_t energy, Double_
 	}
 	
 	//print header
-	output << "{1 JetEta 1 JetA max(0.0001,1-[0]*x) Correction L1Offset}" << endl;
+	output << "{1 JetEta 2 JetPt JetA max(0.0001,1-y*[0]/x) Correction L1FastJet}" << endl;
 	
 	//get prof from above function
 	TProfile* hprof = get_noise(algo,year,energy,lumi,0);
 	
 	//print info from prof:
-	//eta range, nvar*2+npar=3, jet area range (x variable), offset per jet area ([0] parameter)
+	//eta range, nvar*2+npar=5, jet area range (x variable), offset per jet area ([0] parameter)
 	for(int i = 1; i <= hprof->GetNbinsX(); i++){
 		output << setw(11) << hprof->GetXaxis()->GetBinLowEdge(i)
 			   << setw(11) << hprof->GetXaxis()->GetBinUpEdge(i)
-			   << setw(11) << 3
+			   << setw(11) << 5
+			   << setw(11) << 1
+			   << setw(11) << 3000
 			   << setw(11) << 0
 			   << setw(11) << 10
 			   << setw(11) << hprof->GetBinContent(i)
