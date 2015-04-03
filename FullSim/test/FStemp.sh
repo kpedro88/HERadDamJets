@@ -29,7 +29,7 @@ cat ./${FPRE}_temp_cfg.py \
 
 if [ -z "$JUSTRUN" ]; then
   echo ""
-  echo ">> `/bin/date` Submitting condor job : $1 $4 $5 $6 $7 $8"
+  echo ">> `/bin/date` Submitting condor job : ${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py"
 
   cat ./jobExecCondor.jdl \
   | sed -e s/JOBNAME/${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}/g \
@@ -42,7 +42,7 @@ if [ -z "$JUSTRUN" ]; then
   cd -
 else
   echo ""
-  echo ">> `/bin/date` Running job : $1 $4 $5 $6 $7 $8"
+  echo ">> `/bin/date` Running job : ${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py"
 
   cmsRun ${JOBDIR}/${FPRE}_20${YEAR}_pt${ENERGY}_lumi${LUMI}_n${NEVENT}_part${NPART}.py
 fi
