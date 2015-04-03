@@ -131,7 +131,7 @@ if not hasattr(process.GlobalTag,'toGet'):
 if LUMIDRK==50 or LUMIDRK==100:
     process.GlobalTag.toGet = cms.VPSet(
         cms.PSet(record = cms.string("EcalTPGLinearizationConstRcd"),
-                 tag = cms.string("EcalTPGLinearizationConst_TLLUMIDRK_ILINSTLUMI_v1_mc"),
+                 tag = cms.string("EcalTPGLinearizationConst_TLLUMIDRK_ILINSTLUMI%s_mc"%("_v1" if LUMIDRK==100 else "")),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
                  ),
         cms.PSet(record = cms.string("EcalIntercalibConstantsRcd"),
