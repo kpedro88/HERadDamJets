@@ -24,12 +24,40 @@ process.source = cms.Source("PoolSource",
 	duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
 )
 
+# get the JECs
+from CondCore.DBCommon.CondDBSetup_cfi import *
+process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+	connect = cms.string('sqlite_file:CMSSWVER/src/HERadDamJets/FullSim/test/corrections/era20YEARageLUMIDRK_V1.db'),
+	toGet = cms.VPSet(
+		cms.PSet(record = cms.string("JetCorrectionsRecord"),
+			tag = cms.string("JetCorrectorParametersCollection_era20YEARageLUMIDRK_V1_AK5Calo"),
+			label= cms.untracked.string("AK5Calo")
+		),
+		cms.PSet(record = cms.string("JetCorrectionsRecord"),
+			tag = cms.string("JetCorrectorParametersCollection_era20YEARageLUMIDRK_V1_AK5PF"),
+			label= cms.untracked.string("AK5PF")
+		),
+	)
+)
+process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+
+# apply the JECs
+process.ak5CaloJetsL1FastL2L3 = cms.EDProducer('CaloJetCorrectionProducer',
+    src = cms.InputTag('ak5CaloJets'),
+    correctors = cms.vstring('ak5CaloL1FastL2L3')
+)
+process.ak5PFJetsL1FastL2L3 = cms.EDProducer('PFJetCorrectionProducer',
+    src = cms.InputTag('ak5PFJets'),
+    correctors = cms.vstring('ak5PFL1FastL2L3')
+)
+
+# run the analyzer
 process.demo = cms.EDAnalyzer('FullSimJetCorrAnalyzer',
     fileName = cms.string("tree_jet_20YEAR_ptENERGYIN_lumiLUMIDRK.root"),
 	dRcut = cms.double(0.3)
 )
 
-process.p = cms.Path(process.demo)
+process.p = cms.Path(process.ak5CaloJetsL1FastL2L3 * process.ak5PFJetsL1FastL2L3 * process.demo)
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
