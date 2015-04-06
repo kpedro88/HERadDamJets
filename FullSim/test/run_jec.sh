@@ -31,9 +31,9 @@ for YEAR in 17 19
           
           xrdcp -f rootmp/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root ${DIR}/
           rm rootmp/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root
-		fi
+        fi
         
-		if [ -z "$SKIP2" ]; then
+        if [ -z "$SKIP2" ]; then
           echo "20${YEAR} lumi ${LUMI}: create JRA histos..."
           ${CMSSW_BASE}/bin/slc6_amd64_gcc472/jet_response_analyzer_x \
           ${CMSSW_BASE}/src/JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning_noHF.config \
@@ -43,8 +43,8 @@ for YEAR in 17 19
           xrdcp -f rootmp/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root ${DIR}/
           rm rootmp/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root
         fi
-		
-		if [ -z "$SKIP3" ]; then
+        
+        if [ -z "$SKIP3" ]; then
           echo "20${YEAR} lumi ${LUMI}: compute L2L3 correction..."
           ${CMSSW_BASE}/bin/slc6_amd64_gcc472/jet_l2_correction_x \
           -input ${DIR}/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
@@ -60,8 +60,8 @@ for YEAR in 17 19
               mv ${FILE} corrections/${FIXED}
             done
         fi
-		
-		if [ -z "$SKIP4" ]; then
+        
+        if [ -z "$SKIP4" ]; then
           echo "20${YEAR} lumi ${LUMI}: create DB files..."
           # create dummy L3 corrections
           echo -e "{1         JetEta              1          JetPt               1     Correction     L3Absolute}\n-5.191          5.191              2              4           5000" \
@@ -70,7 +70,7 @@ for YEAR in 17 19
           > corrections/era20${YEAR}age${LUMI}_V1_L3Absolute_AK5PF.txt
           ./FStemp.sh JetCorrectionDBWriter batch . ${YEAR} 30 ${LUMI} 1 1 run >> ${LOGNAME} 2>&1
           
-		  mv *.db corrections/
-		fi
+          mv *.db corrections/
+        fi
       done
   done
