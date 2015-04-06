@@ -42,19 +42,16 @@ process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
 process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 
 # apply the JECs
-process.ak5CaloJetsL1FastL2L3 = cms.EDProducer('CaloJetCorrectionProducer',
-    src = cms.InputTag('ak5CaloJets'),
-    correctors = cms.vstring('AK5Calo')
-)
-process.ak5PFJetsL1FastL2L3 = cms.EDProducer('PFJetCorrectionProducer',
-    src = cms.InputTag('ak5PFJets'),
-    correctors = cms.vstring('AK5PF')
-)
+process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
+# use ak5CaloJetsL1FastL2L3, ak5PFJetsL1FastL2L3
 
 # run the analyzer
 process.demo = cms.EDAnalyzer('FullSimJetCorrAnalyzer',
     fileName = cms.string("tree_jet_20YEAR_ptENERGYIN_lumiLUMIDRK.root"),
-	dRcut = cms.double(0.3)
+    dRcut = cms.double(0.3),
+    GenJet = cms.InputTag("ak5GenJets"),
+    CaloJet = cms.InputTag("ak5CaloJetsL1FastL2L3"),
+    PFJet = cms.InputTag("ak5PFJetsL1FastL2L3")
 )
 
 process.p = cms.Path(process.ak5CaloJetsL1FastL2L3 * process.ak5PFJetsL1FastL2L3 * process.demo)

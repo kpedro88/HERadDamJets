@@ -29,10 +29,10 @@ using namespace std;
 using namespace edm;
 using namespace reco;
 
-FullSimJetCorrAnalyzer::FullSimJetCorrAnalyzer(const edm::ParameterSet& iConfig) { 
-	outname = iConfig.getParameter<string>("fileName");
-	dRcut = iConfig.getParameter<double>("dRcut");
-}
+FullSimJetCorrAnalyzer::FullSimJetCorrAnalyzer(const edm::ParameterSet& iConfig) : 
+outname(iConfig.getParameter<string>("fileName")), dRcut(iConfig.getParameter<double>("dRcut")), 
+inputTagGenJet(iConfig.getParameter<InputTag>("GenJet")), inputTagCaloJet(iConfig.getParameter<InputTag>("CaloJet")), inputTagPFJet(iConfig.getParameter<InputTag>("PFJet"))
+{ }
 
 FullSimJetCorrAnalyzer::~FullSimJetCorrAnalyzer() { }
 
@@ -44,22 +44,19 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	//----------
 
 	Handle<CaloJetCollection> h_CaloJets;
-	iEvent.getByLabel("ak5CaloJets", h_CaloJets);
-	CaloJetCollection::const_iterator caloIt = h_CaloJets->begin();
+	iEvent.getByLabel(inputTagCaloJet, h_CaloJets);	
 
 	Handle<PFJetCollection> h_PFJets;
-	iEvent.getByLabel("ak5PFJets", h_PFJets);
-	PFJetCollection::const_iterator pfIt = h_PFJets->begin();
+	iEvent.getByLabel(inputTagPFJet, h_PFJets);	
 	
 	Handle<GenJetCollection> h_GenJets;
-	iEvent.getByLabel("ak5GenJets", h_GenJets);
-	GenJetCollection::const_iterator genIt = h_GenJets->begin();
+	iEvent.getByLabel(inputTagGenJet, h_GenJets);
 	GenJetCollection::const_iterator gen1[2] = {h_GenJets->end(),h_GenJets->end()}; //for barrel and endcap
 	
 	//find leading genjet (pt cut corresponding to gen filter)
 	double min_pt[2] = {10,10};
 	
-	for(; genIt != h_GenJets->end(); genIt++){
+	for(GenJetCollection::const_iterator genIt = h_GenJets->begin(); genIt != h_GenJets->end(); genIt++){
 		double curr_pt = genIt->pt();
 		double curr_eta = genIt->eta();
 		if(curr_pt > min_pt[0] && fabs(curr_eta)<1.8) { //require barrel eta cuts corresponding to gen filter
@@ -95,7 +92,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		e_gen_area = gen1[g]->jetArea();
 		
 		//loop over calo
-		for(; caloIt != h_CaloJets->end(); caloIt++){
+		for(CaloJetCollection::const_iterator caloIt = h_CaloJets->begin(); caloIt != h_CaloJets->end(); caloIt++){
 			//check match within cone
 			double dR = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),caloIt->p4());
 			if (dR < dRcut) {
@@ -109,7 +106,7 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		}
 		
 		//loop over pf
-		for(; pfIt != h_PFJets->end(); pfIt++){
+		for(PFJetCollection::const_iterator pfIt = h_PFJets->begin(); pfIt != h_PFJets->end(); pfIt++){
 			//check match within cone
 			double dR = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),pfIt->p4());
 			if (dR < dRcut) {
