@@ -72,7 +72,9 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
                         'keep *_particleFlow_*_*',
                         'keep *_particleFlowPtrs_*_*',
                         'keep *_particleFlowTmpPtrs_*_*',
-                        'keep PileupSummaryInfos_*_*_*'
+                        'keep PileupSummaryInfos_*_*_*',
+                        'keep double_kt6PFJets_rho_RECO',
+                        'keep double_kt6CaloJets_rho_RECO'
     ),
     fileName = cms.untracked.string('file:dijet_digireco_20YEAR_ptENERGYIN_lumiLUMIDRK_nNEVENT_partNPART.root'),
     dataset = cms.untracked.PSet(
