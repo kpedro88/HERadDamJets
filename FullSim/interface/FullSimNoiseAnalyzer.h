@@ -42,11 +42,12 @@ class FullSimNoiseAnalyzer : public edm::EDAnalyzer {
 		//member variables
 		TFile* out_file;
 		TTree* tree_tot;
+		std::string outname;
+		double dRcut;
+		bool debug;
 		double e_gen_eta, e_gen_phi;
 		double e_calo_noise_en, e_calo_noise_pt;
 		double e_pf_noise_en, e_pf_noise_pt;
-		double dRcut;
-		std::string outname;
 
 };
 

@@ -161,7 +161,7 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 	pave->SetTextSize(0.05);
 	
 	std::stringstream luminames[maxHDlumi];
-	TLegend *leg = new TLegend(0.7,0.89-0.05*maxHDlumi,0.9,0.89);
+	TLegend *leg = new TLegend(0.79,0.89-0.05*maxHDlumi,0.93,0.89);
 	leg->SetFillColor(0);
 	leg->SetBorderSize(0);
 	leg->SetTextSize(0.05);

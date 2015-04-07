@@ -3,6 +3,7 @@
 
 // user include files
 #include "HERadDamJets/FullSim/interface/FullSimNoiseAnalyzer.h"
+#include <iostream>
 #include <sstream>
 #include <cmath>
 
@@ -48,10 +49,9 @@ double FullSimNoiseAnalyzer::DeltaR(double phi1, double eta1, double phi2, doubl
 	return sqrt(dR2);
 }
 
-FullSimNoiseAnalyzer::FullSimNoiseAnalyzer(const edm::ParameterSet& iConfig) { 
-	outname = iConfig.getParameter<string>("fileName");
-	dRcut = iConfig.getParameter<double>("dRcut");
-}
+FullSimNoiseAnalyzer::FullSimNoiseAnalyzer(const edm::ParameterSet& iConfig) :
+outname(iConfig.getParameter<string>("fileName")), dRcut(iConfig.getParameter<double>("dRcut")), debug(iConfig.getParameter<bool>("debug"))
+{ }
 
 FullSimNoiseAnalyzer::~FullSimNoiseAnalyzer() { }
 
@@ -105,18 +105,18 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		
 		//check that no jets exist in the opposite side of the detector
 		double cone_eta = -e_gen_eta;
-		double cone_phi = e_gen_phi;
+		double cone_phi = -e_gen_phi;
 		bool match_gen = true;
 		int phi_ctr = 0;
-		while(match_gen && phi_ctr<8){
+		while(match_gen && phi_ctr<6){
 			match_gen = false;
 			for(genIt = h_GenJets->begin(); genIt != h_GenJets->end(); genIt++){
 				double dR = DeltaR(cone_phi,cone_eta,genIt->phi(),genIt->eta());
-				if(dR<dRcut) { match_gen = true; break; }
+				if(dR<2*dRcut) { match_gen = true; break; }
 			}
 			if(match_gen) {
-				//rotate phi cone by pi/4 to get away from intruding genjet
-				cone_phi += TMath::Pi()/4;
+				//rotate phi cone by dRcut*2 to get away from intruding genjet
+				cone_phi += dRcut*2;
 				cone_phi = phi( cos(cone_phi), sin(cone_phi) );
 				++phi_ctr;
 			}
@@ -142,6 +142,9 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 			}
 			
 			tree_tot->Fill();
+		}
+		else {
+			if(debug) cout << "Couldn't find good noise cone for GenJet with eta = " << e_gen_eta << ", phi = " << e_gen_phi << endl;
 		}
 	}
 	
