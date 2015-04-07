@@ -31,7 +31,8 @@ using namespace reco;
 
 FullSimJetCorrAnalyzer::FullSimJetCorrAnalyzer(const edm::ParameterSet& iConfig) : 
 outname(iConfig.getParameter<string>("fileName")), dRcut(iConfig.getParameter<double>("dRcut")), 
-inputTagGenJet(iConfig.getParameter<InputTag>("GenJet")), inputTagCaloJet(iConfig.getParameter<InputTag>("CaloJet")), inputTagPFJet(iConfig.getParameter<InputTag>("PFJet"))
+inputTagGenJet(iConfig.getParameter<InputTag>("GenJet")), inputTagCaloJet(iConfig.getParameter<InputTag>("CaloJet")), inputTagPFJet(iConfig.getParameter<InputTag>("PFJet")),
+e_year(iConfig.getParameter<int>("Year")), e_lumi(iConfig.getParameter<double>("Lumi"))
 { }
 
 FullSimJetCorrAnalyzer::~FullSimJetCorrAnalyzer() { }
@@ -73,16 +74,8 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	for(int g = 0; g < 2; g++){
 		if(gen1[g] == h_GenJets->end()) continue;
 		
-		//reset variables
-		e_calo_en = e_calo_pt = e_calo_eta = e_calo_phi = e_calo_area = 0;
-		e_pf_en = e_pf_pt = e_pf_eta = e_pf_phi = e_pf_area = 0;
+		//reset gen variables
 		e_gen_en = e_gen_pt = e_gen_eta = e_gen_phi = e_gen_area = 0;
-		e_dr_match_calo = e_dr_match_pf = 100;
-		
-		CaloJetCollection::const_iterator calo1 = h_CaloJets->end();
-		PFJetCollection::const_iterator pf1 = h_PFJets->end();
-		double calo_min_pt = 0;
-		double pf_min_pt = 0;
 		
 		//store the genjet vars
 		e_gen_en = gen1[g]->energy();
@@ -90,6 +83,13 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		e_gen_eta = gen1[g]->eta();
 		e_gen_phi = gen1[g]->phi();
 		e_gen_area = gen1[g]->jetArea();
+		
+		//reset reco variables
+		e_rec_en = e_rec_pt = e_rec_eta = e_rec_phi = e_rec_area = 0;
+		e_dr_match = 100;
+		e_calo = e_pf = false;
+		CaloJetCollection::const_iterator calo1 = h_CaloJets->end();
+		double calo_min_pt = 0;
 		
 		//loop over calo
 		for(CaloJetCollection::const_iterator caloIt = h_CaloJets->begin(); caloIt != h_CaloJets->end(); caloIt++){
@@ -105,6 +105,26 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 			}
 		}
 		
+		//if a matching CaloJet was found, store its vars
+		//with noise offset correction applied to pT (raw pT also stored)
+		if(calo1 != h_CaloJets->end()){
+			e_calo = true;
+			e_rec_en = calo1->energy();
+			e_rec_pt = calo1->pt();
+			e_rec_eta = calo1->eta();
+			e_rec_phi = calo1->phi();
+			e_rec_area = calo1->jetArea();
+			e_dr_match = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),calo1->p4());
+			tree_tot->Fill();
+		}
+		
+		//reset reco variables
+		e_rec_en = e_rec_pt = e_rec_eta = e_rec_phi = e_rec_area = 0;
+		e_dr_match = 100;
+		e_calo = e_pf = false;
+		PFJetCollection::const_iterator pf1 = h_PFJets->end();
+		double pf_min_pt = 0;
+		
 		//loop over pf
 		for(PFJetCollection::const_iterator pfIt = h_PFJets->begin(); pfIt != h_PFJets->end(); pfIt++){
 			//check match within cone
@@ -118,29 +138,19 @@ FullSimJetCorrAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 				}
 			}
 		}
-
-		//if a matching CaloJet was found, store its vars
-		//with noise offset correction applied to pT (raw pT also stored)
-		if(calo1 != h_CaloJets->end()){
-			e_calo_en = calo1->energy();
-			e_calo_pt = calo1->pt();
-			e_calo_eta = calo1->eta();
-			e_calo_phi = calo1->phi();
-			e_calo_area = calo1->jetArea();
-			e_dr_match_calo = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),calo1->p4());
-		}
 		
 		//if a matching PFJet was found, store its vars
 		if(pf1 != h_PFJets->end()){
-			e_pf_en = pf1->energy();
-			e_pf_pt = pf1->pt();
-			e_pf_eta = pf1->eta();
-			e_pf_phi = pf1->phi();
-			e_pf_area = pf1->jetArea();
-			e_dr_match_pf = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),pf1->p4());
+			e_pf = true;
+			e_rec_en = pf1->energy();
+			e_rec_pt = pf1->pt();
+			e_rec_eta = pf1->eta();
+			e_rec_phi = pf1->phi();
+			e_rec_area = pf1->jetArea();
+			e_dr_match = ROOT::Math::VectorUtil::DeltaR(gen1[g]->p4(),pf1->p4());
+			tree_tot->Fill();
 		}
 		
-		tree_tot->Fill();
 	}
 }
 
@@ -154,18 +164,16 @@ FullSimJetCorrAnalyzer::beginJob() {
 	tree_tot->Branch("GenJetEta",&e_gen_eta,"e_gen_eta/D");
 	tree_tot->Branch("GenJetPhi",&e_gen_phi,"e_gen_phi/D");
 	tree_tot->Branch("GenJetArea",&e_gen_area,"e_gen_area/D");
-	tree_tot->Branch("CaloJetEnergy",&e_calo_en,"e_calo_en/D");
-	tree_tot->Branch("CaloJetPt",&e_calo_pt,"e_calo_pt/D");
-	tree_tot->Branch("CaloJetEta",&e_calo_eta,"e_calo_eta/D");
-	tree_tot->Branch("CaloJetPhi",&e_calo_phi,"e_calo_phi/D");
-	tree_tot->Branch("CaloJetArea",&e_calo_area,"e_calo_area/D");
-	tree_tot->Branch("CaloDeltaR",&e_dr_match_calo,"e_dr_match_calo/D");
-	tree_tot->Branch("PFJetEnergy",&e_pf_en,"e_pf_en/D");
-	tree_tot->Branch("PFJetPt",&e_pf_pt,"e_pf_pt/D");
-	tree_tot->Branch("PFJetEta",&e_pf_eta,"e_pf_eta/D");
-	tree_tot->Branch("PFJetPhi",&e_pf_phi,"e_pf_phi/D");
-	tree_tot->Branch("PFJetArea",&e_pf_area,"e_pf_area/D");
-	tree_tot->Branch("PFDeltaR",&e_dr_match_pf,"e_dr_match_pf/D");
+	tree_tot->Branch("RecoJetEnergy",&e_rec_en,"e_rec_en/D");
+	tree_tot->Branch("RecoJetPt",&e_rec_pt,"e_rec_pt/D");
+	tree_tot->Branch("RecoJetEta",&e_rec_eta,"e_rec_eta/D");
+	tree_tot->Branch("RecoJetPhi",&e_rec_phi,"e_rec_phi/D");
+	tree_tot->Branch("RecoJetArea",&e_rec_area,"e_rec_area/D");
+	tree_tot->Branch("DeltaR",&e_dr_match,"e_dr_match/D");
+	tree_tot->Branch("Year",&e_year,"e_year/I");
+	tree_tot->Branch("Lumi",&e_lumi,"e_lumi/D");
+	tree_tot->Branch("Calo",&e_calo,"e_calo/O");
+	tree_tot->Branch("PF",&e_pf,"e_pf/O");
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

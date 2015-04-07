@@ -29,7 +29,9 @@ process.demo = cms.EDAnalyzer('FullSimJetCorrAnalyzer',
     dRcut = cms.double(0.3),
     GenJet = cms.InputTag("ak5GenJets"),
     CaloJet = cms.InputTag("ak5CaloJets"),
-    PFJet = cms.InputTag("ak5PFJets")
+    PFJet = cms.InputTag("ak5PFJets"),
+    Year = cms.int32(20YEAR),
+    Lumi = cms.double(LUMIDRK)
 )
 
 process.p = cms.Path(process.demo)
