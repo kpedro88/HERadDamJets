@@ -26,7 +26,8 @@ process.source = cms.Source("PoolSource",
 
 process.demo = cms.EDAnalyzer('FullSimNoiseAnalyzer',
     fileName = cms.string("tree_noise_20YEAR_ptENERGYIN_lumiLUMIDRK.root"),
-	dRcut = cms.double(0.5)
+	dRcut = cms.double(0.5),
+    debug = cms.bool(False)
 )
 
 process.p = cms.Path(process.demo)
