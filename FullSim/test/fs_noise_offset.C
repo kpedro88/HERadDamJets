@@ -77,7 +77,7 @@ TProfile* get_noise(string algo, Int_t year, Double_t energy, Double_t lumi, boo
 	TCanvas* can;
 	TPaveText* pave;
 
-	std::string yrnames[] = {"2017 (HPDs)","2019 (SiPMs)"};
+	std::string yrnames[] = {"HPDs","SiPMs"};
 
 	//plotting
 	if (do_show){
@@ -136,6 +136,7 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 		//check extrema
 		if(ymax < graphs[j]->GetMaximum()) ymax = graphs[j]->GetMaximum();
 		if(ymin > graphs[j]->GetMinimum()) ymin = graphs[j]->GetMinimum();
+		//cout << lumis[j] << "\t" << graphs[j]->GetMaximum() << endl;
 	}
 	//manual setting
 	ymin = 0;
@@ -150,22 +151,15 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 	pad1->Draw();
 	pad1->cd();
 
-	std::string yrnames[] = {"2017 (HPDs)","2019 (SiPMs)"};
-	
-	double xmin = 0.3;
-	TPaveText* pave = new TPaveText(xmin,0.94,xmin+0.5,0.99,"NDC");
-	pave->AddText((year==2017) ? yrnames[0].c_str() : yrnames[1].c_str());
-	pave->SetFillColor(0);
-	pave->SetBorderSize(0);
-	pave->SetTextFont(42);
-	pave->SetTextSize(0.05);
+	std::string yrnames[] = {"HPDs","SiPMs"};
 	
 	std::stringstream luminames[maxHDlumi];
-	TLegend *leg = new TLegend(0.79,0.89-0.05*maxHDlumi,0.93,0.89);
+	TLegend *leg = new TLegend(0.79,0.89-0.05*(maxHDlumi+1),0.93,0.89);
 	leg->SetFillColor(0);
 	leg->SetBorderSize(0);
 	leg->SetTextSize(0.05);
 	leg->SetTextFont(42);
+	leg->AddEntry((TObject*)NULL,(year==2017) ? yrnames[0].c_str() : yrnames[1].c_str(),"");
 	
 	Color_t colors[] = {kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta, kOrange+7, kYellow+3};
 	for(int j = 0; j < maxHDlumi; j++){
@@ -195,7 +189,6 @@ void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0)
 		if(j==0) graphs[j]->Draw("PE");
 		else graphs[j]->Draw("PE same");
 	}
-	pave->Draw("same");
 	leg->Draw("same");
 	
 	if(do_print){
