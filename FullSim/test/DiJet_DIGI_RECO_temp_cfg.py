@@ -92,6 +92,8 @@ if LUMIDRK==0:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'DESYEAR_62_V8::All', '')
 elif LUMIDRK==50 or LUMIDRK==100:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_150_62E2::All', '')
+elif LUMIDRK>=1000:
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK62E2::All', '')
 else:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK_62E2::All', '')
 
@@ -148,6 +150,13 @@ if LUMIDRK==50 or LUMIDRK==100:
                  tag = cms.string("EcalLaserAPDPNRatios_TLLUMIDRK_ILINSTLUMI_mc"),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_42X_ECAL_LAS")
                  ),
+    	cms.PSet(record = cms.string("EcalSRSettingsRcd"),
+                 tag = cms.string("EcalSRSettings_TLLUMIDRK_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
+                 )
+    )
+elif LUMIDRK==500:
+    process.GlobalTag.toGet = cms.VPSet(
     	cms.PSet(record = cms.string("EcalSRSettingsRcd"),
                  tag = cms.string("EcalSRSettings_TLLUMIDRK_mc"),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")

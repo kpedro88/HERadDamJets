@@ -9,6 +9,8 @@ if LUMIDRK==0:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'DESYEAR_62_V8::All', '')
 elif LUMIDRK==50 or LUMIDRK==100:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_150_62E2::All', '')
+elif LUMIDRK>=1000:
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK62E2::All', '')
 else:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK_62E2::All', '')
 
