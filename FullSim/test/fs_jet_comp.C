@@ -100,7 +100,7 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 				
 				vector<KGroup*> groups;
 				for(int a = 1; a <= 2; a++){
-					KGroup* group = new KGroup(colors[a]);
+					KGroup* group = new KGroup(colors[a-1]);
 					for(int ieta = 0; ieta < 8; ieta++){
 						group->push_back(new KSample(file,(alg)a,years[y],lumis[Lnum],etas8[ieta],etas8[ieta+1]));
 					}

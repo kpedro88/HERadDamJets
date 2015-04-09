@@ -174,7 +174,7 @@ void DrawResolution(vector<KGroup*> groups, bool fit=true, bool print=false, str
 	int legheight = 0;
 	legheight = groups.size()+preamble.size();
 	//TLegend* leg = new TLegend(0.65,0.9,0.9,0.9-0.05*(group->samples.size()+preamble.size()));
-	TLegend* leg = new TLegend(0.18,0.93,0.43,0.93-0.05*legheight);
+	TLegend* leg = new TLegend(0.18,0.93,0.48,0.93-0.05*legheight);
 	
 	//add preamble text to legend
 	for(int p = 0; p < preamble.size(); p++){

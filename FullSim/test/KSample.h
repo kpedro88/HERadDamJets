@@ -48,8 +48,8 @@ class KSample {
 			
 			stringstream ss;
 			ss << year;
-			if(year==2017) legnames[Year] = "Phase 0 (HPDs)";
-			else if(year==2019) legnames[Year] = "Phase 1 (SiPMs)";
+			if(year==2017) legnames[Year] = "HPDs";
+			else if(year==2019) legnames[Year] = "SiPMs";
 			else legnames[Year] = ss.str();
 			printnames[Year] = ss.str();
 			printname += "_" + printnames[Year];
