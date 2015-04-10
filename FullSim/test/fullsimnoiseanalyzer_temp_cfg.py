@@ -3,6 +3,8 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
+process.load('Configuration.Geometry.GeometryExtended20YEARReco_cff')
+process.load('Configuration.Geometry.GeometryExtended20YEAR_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 if LUMIDRK==0:

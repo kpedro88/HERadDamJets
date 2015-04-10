@@ -16,6 +16,9 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+//geometry
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+
 class TFile;
 class TTree;
 
@@ -46,8 +49,12 @@ class FullSimNoiseAnalyzer : public edm::EDAnalyzer {
 		double dRcut;
 		bool debug;
 		double e_gen_eta, e_gen_phi;
+		double e_ecal_noise_en, e_ecal_noise_pt;
+		double e_hcal_noise_en, e_hcal_noise_pt;
+		double e_rec_noise_en, e_rec_noise_pt;
 		double e_calo_noise_en, e_calo_noise_pt;
 		double e_pf_noise_en, e_pf_noise_pt;
+		edm::ESHandle<CaloGeometry> geometry;
 
 };
 

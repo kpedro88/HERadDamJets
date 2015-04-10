@@ -7,6 +7,28 @@
 #include <sstream>
 #include <cmath>
 
+//Ecal Rec hits 
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+
+//Ecal det id
+#include "DataFormats/EcalDetId/interface/EBDetId.h"
+#include "DataFormats/EcalDetId/interface/EEDetId.h"
+
+//Hcal Rec hits
+#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
+#include "DataFormats/HcalRecHit/interface/HBHERecHit.h"
+#include "DataFormats/HcalRecHit/interface/HFRecHit.h"
+
+//Hcal det id
+#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
+#include "DataFormats/HcalDetId/interface/HcalDetId.h"
+
+//cell geometry
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+#include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+
 //CaloTowers
 #include "DataFormats/CaloTowers/interface/CaloTower.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
@@ -58,6 +80,28 @@ FullSimNoiseAnalyzer::~FullSimNoiseAnalyzer() { }
 // ------------ method called for each event  ------------
 void
 FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+	iSetup.get<CaloGeometryRecord>().get(geometry);
+	
+	//COLLECT RECHITS
+	//---------------
+	
+	//Access to RecHits information
+	Handle<EcalRecHitCollection> EERecHits;
+	bool bEEr = iEvent.getByLabel("ecalRecHit","EcalRecHitsEE", EERecHits);
+	Handle<EcalRecHitCollection> EBRecHits;
+	bool bEBr = iEvent.getByLabel("ecalRecHit","EcalRecHitsEB", EBRecHits);
+	
+	Handle<HBHERecHitCollection> HBHERecHits;
+	Handle<HFRecHitCollection> HFRecHits;
+	bool bHBHEr = false;
+	bool bHFr = false;
+	//try run1 case first
+	bHBHEr = iEvent.getByLabel("hbhereco", HBHERecHits);
+	bHFr = iEvent.getByLabel("hfreco", HFRecHits);
+	//then try upgrade case
+	if(!bHBHEr) bHBHEr = iEvent.getByLabel("hbheUpgradeReco", HBHERecHits);
+	if(!bHFr) bHFr = iEvent.getByLabel("hfUpgradeReco", HFRecHits);
+	
 	//COLLECT CALOTOWERS
 	//------------------
 	Handle<CaloTowerCollection> CaloTowers;
@@ -96,6 +140,7 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		if(gen1[g] == h_GenJets->end()) continue;
 
 		//reset variables
+		e_hcal_noise_en = e_hcal_noise_pt = e_ecal_noise_en = e_ecal_noise_pt = e_rec_noise_en = e_rec_noise_pt = 0;
 		e_calo_noise_en = e_calo_noise_pt = e_pf_noise_en = e_pf_noise_pt = 0;
 		e_gen_eta = e_gen_phi = 0;
 		
@@ -123,6 +168,54 @@ FullSimNoiseAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 		}
 		
 		if(!match_gen){
+			//loop over ECAL rechits
+			if(bEEr){
+				for (EcalRecHitCollection::const_iterator hit = EERecHits->begin(); hit!=EERecHits->end(); ++hit) {
+					EEDetId cell(hit->id());
+					const CaloCellGeometry* cellGeometry = geometry->getSubdetectorGeometry(cell)->getGeometry(cell);
+					double h_eta = cellGeometry->getPosition().eta();
+					double h_phi = cellGeometry->getPosition().phi();
+					double dR = DeltaR(cone_phi,cone_eta,h_phi,h_eta);
+					if(dR < dRcut) { e_ecal_noise_en += hit->energy(); e_ecal_noise_pt += hit->energy()/TMath::CosH(h_eta); }
+				}
+			}
+			if(bEBr){
+				for (EcalRecHitCollection::const_iterator hit = EBRecHits->begin(); hit!=EBRecHits->end(); ++hit) {
+					EBDetId cell(hit->id());
+					const CaloCellGeometry* cellGeometry = geometry->getSubdetectorGeometry(cell)->getGeometry(cell);
+					double h_eta = cellGeometry->getPosition().eta();
+					double h_phi = cellGeometry->getPosition().phi();
+					double dR = DeltaR(cone_phi,cone_eta,h_phi,h_eta);
+					if(dR < dRcut) { e_ecal_noise_en += hit->energy(); e_ecal_noise_pt += hit->energy()/TMath::CosH(h_eta); }
+				}
+			}
+			
+			//loop over HCAL rechits
+			if(bHBHEr){
+				for (HBHERecHitCollection::const_iterator hit = HBHERecHits->begin(); hit!=HBHERecHits->end(); ++hit) {
+					HcalDetId cell(hit->id());
+					const CaloCellGeometry* cellGeometry = geometry->getSubdetectorGeometry(cell)->getGeometry(cell);
+					double h_eta = cellGeometry->getPosition().eta();
+					double h_phi = cellGeometry->getPosition().phi();
+					double dR = DeltaR(cone_phi,cone_eta,h_phi,h_eta);
+					if(dR < dRcut) { e_hcal_noise_en += hit->energy(); e_hcal_noise_pt += hit->energy()/TMath::CosH(h_eta); }
+				}
+			}
+			if(bHFr){
+				for (HFRecHitCollection::const_iterator hit = HFRecHits->begin(); hit!=HFRecHits->end(); ++hit) {
+					HcalDetId cell(hit->id());
+					const CaloCellGeometry* cellGeometry = geometry->getSubdetectorGeometry(cell)->getGeometry(cell);
+					double h_eta = cellGeometry->getPosition().eta();
+					double h_phi = cellGeometry->getPosition().phi();
+					double dR = DeltaR(cone_phi,cone_eta,h_phi,h_eta);
+					if(dR < dRcut) { e_hcal_noise_en += hit->energy(); e_hcal_noise_pt += hit->energy()/TMath::CosH(h_eta); }
+				}
+			}
+
+			//sum up all rechits
+			e_rec_noise_en = e_ecal_noise_en + e_hcal_noise_en;
+			e_rec_noise_pt = e_ecal_noise_pt + e_hcal_noise_pt;
+
 			//loop over calotowers
 			if(bCT){
 				for (CaloTowerCollection::const_iterator hit = CaloTowers->begin(); hit!=CaloTowers->end(); ++hit) {
@@ -157,6 +250,12 @@ FullSimNoiseAnalyzer::beginJob() {
 	tree_tot = new TTree("Total", "Energy Calorimeter info");
 	tree_tot->Branch("GenJetEta",&e_gen_eta,"e_gen_eta/D");
 	tree_tot->Branch("GenJetPhi",&e_gen_phi,"e_gen_phi/D");
+	tree_tot->Branch("EcalNoiseEnergy",&e_ecal_noise_en,"e_ecal_noise_en/D");
+	tree_tot->Branch("EcalNoisePt",&e_ecal_noise_pt,"e_ecal_noise_pt/D");
+	tree_tot->Branch("HcalNoiseEnergy",&e_hcal_noise_en,"e_hcal_noise_en/D");
+	tree_tot->Branch("HcalNoisePt",&e_hcal_noise_pt,"e_hcal_noise_pt/D");
+	tree_tot->Branch("RecHitNoiseEnergy",&e_rec_noise_en,"e_rec_noise_en/D");
+	tree_tot->Branch("RecHitNoisePt",&e_rec_noise_pt,"e_rec_noise_pt/D");
 	tree_tot->Branch("CaloNoiseEnergy",&e_calo_noise_en,"e_calo_noise_en/D");
 	tree_tot->Branch("CaloNoisePt",&e_calo_noise_pt,"e_calo_noise_pt/D");
 	tree_tot->Branch("PFNoiseEnergy",&e_pf_noise_en,"e_pf_noise_en/D");
