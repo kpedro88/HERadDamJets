@@ -50,6 +50,7 @@ class KSample {
 			ss << year;
 			if(year==2017) legnames[Year] = "HPDs";
 			else if(year==2019) legnames[Year] = "SiPMs";
+			else if(year==2021) legnames[Year] = "Plan B";
 			else legnames[Year] = ss.str();
 			printnames[Year] = ss.str();
 			printname += "_" + printnames[Year];
