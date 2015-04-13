@@ -59,12 +59,17 @@ else:
     algorithms.append('ak5calo')
 
 
+#define configuration variables
+cfgyear = YEAR
+if cfgyear==21: #2021 is special case: 2019 with no HCAL aging
+    cfgyear = 19
+    
 #!
 #! CONDITIONS (DELIVERING JEC BY DEFAULT!)
 #!
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade20YEAR', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade20%s'%(cfgyear), '')
 
 if applyDBFile:
 	from CondCore.DBCommon.CondDBSetup_cfi import *

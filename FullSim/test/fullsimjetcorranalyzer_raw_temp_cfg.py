@@ -2,17 +2,22 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("Demo")
 
+#define configuration variables
+cfgyear = YEAR
+if cfgyear==21: #2021 is special case: 2019 with no HCAL aging
+    cfgyear = 19
+
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 if LUMIDRK==0:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'DESYEAR_62_V8::All', '')
-elif LUMIDRK==50 or LUMIDRK==100:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_150_62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'DES%s_62_V8::All'%(cfgyear), '')
+elif LUMIDRK==100:
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_150_62E2::All'%(cfgyear), '')
 elif LUMIDRK>=1000:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_LUMIDRK62E2::All'%(cfgyear), '')
 else:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK_62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_LUMIDRK_62E2::All'%(cfgyear), '')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 

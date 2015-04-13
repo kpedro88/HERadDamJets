@@ -1,7 +1,6 @@
 #!/bin/bash
 
 LOGNAME=$1
-SKIP1=$2
 SKIP2=$3
 SKIP3=$4
 SKIP4=$5
@@ -18,36 +17,29 @@ fi
 
 echo "" > ${LOGNAME} 2>&1
 
-for YEAR in 17 19
+for YEAR in 17 19 21
   do
-    for LUMI in 0 50 100 150 300 500
+    for LUMI in 0 100 150 300 500
       do
-        if [ -z "$SKIP1" ]; then
-          echo "20${YEAR} lumi ${LUMI}: apply L1 JEC..."
-          ${CMSSW_BASE}/bin/slc6_amd64_gcc472/jet_apply_jec_x \
-          -input ${DIR}/JRA_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
-          -era era20${YEAR}age${LUMI}_V1 -levels 1 -jecpath `pwd`/corrections/ -L1FastJet 1 \
-          -output rootmp/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root >> ${LOGNAME} 2>&1
-          
-          xrdcp -f rootmp/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root ${DIR}/
-          rm rootmp/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root
+        if [[ ("$YEAR" -eq 17 && ( "$LUMI" -eq 300 || "$LUMI" -eq 500)) || ("$YEAR" -eq 21 && ( "$LUMI" -eq 0 || "$LUMI" -eq 100)) ]]; then
+          continue
         fi
-        
+		
         if [ -z "$SKIP2" ]; then
           echo "20${YEAR} lumi ${LUMI}: create JRA histos..."
           ${CMSSW_BASE}/bin/slc6_amd64_gcc472/jet_response_analyzer_x \
           ${CMSSW_BASE}/src/JetMETAnalysis/JetAnalyzers/config/jra_dr_finebinning_noHF.config \
-          -input ${DIR}/JRA_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
-          -output rootmp/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root >> ${LOGNAME} 2>&1
+          -input ${DIR}/JRA_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
+          -output rootmp/jra_histo_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root >> ${LOGNAME} 2>&1
           
-          xrdcp -f rootmp/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root ${DIR}/
-          rm rootmp/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root
+          xrdcp -f rootmp/jra_histo_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root ${DIR}/
+          rm rootmp/jra_histo_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root
         fi
         
         if [ -z "$SKIP3" ]; then
           echo "20${YEAR} lumi ${LUMI}: compute L2L3 correction..."
           ${CMSSW_BASE}/bin/slc6_amd64_gcc472/jet_l2_correction_x \
-          -input ${DIR}/jra_histo_L1_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
+          -input ${DIR}/jra_histo_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root \
           -era era20${YEAR}age${LUMI}_V1 -l2l3 true -batch true -mpv false -formats png \
           -outputDir rootmp/ -output L2_dijet_20${YEAR}_pt${ENERGY}_lumi${LUMI}.root >> ${LOGNAME} 2>&1
           

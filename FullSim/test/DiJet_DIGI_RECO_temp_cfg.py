@@ -7,13 +7,18 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('RECO')
 
+#define configuration variables
+cfgyear = YEAR
+if cfgyear==21: #2021 is special case: 2019 with no HCAL aging
+    cfgyear = 19
+
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended20YEARReco_cff')
+process.load('Configuration.Geometry.GeometryExtended20%sReco_cff'%(cfgyear))
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
 process.load('Configuration.StandardSequences.Digi_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
@@ -34,7 +39,7 @@ process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint3
 # Input source
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('/store/user/pedrok/raddam/gensim/dijet_gensim_20YEAR_ptENERGYIN_nNEVENT_partNPART.root')
+    fileNames = cms.untracked.vstring('/store/user/pedrok/raddam/gensim/dijet_gensim_20%s_ptENERGYIN_nNEVENT_partNPART.root'%(cfgyear))
 )
 
 process.options = cms.untracked.PSet(
@@ -89,13 +94,13 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
 process.mix.digitizers = cms.PSet(process.theDigitizersValid)
 from Configuration.AlCa.GlobalTag import GlobalTag
 if LUMIDRK==0:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'DESYEAR_62_V8::All', '')
-elif LUMIDRK==50 or LUMIDRK==100:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_150_62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'DES%s_62_V8::All'%(cfgyear), '')
+elif LUMIDRK==100:
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_150_62E2::All'%(cfgyear), '')
 elif LUMIDRK>=1000:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_LUMIDRK62E2::All'%(cfgyear), '')
 else:
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'WYEAR_LUMIDRK_62E2::All', '')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'W%s_LUMIDRK_62E2::All'%(cfgyear), '')
 
 
 # Path and EndPath definitions
@@ -114,28 +119,33 @@ process.schedule = cms.Schedule(process.digitisation_step,process.L1simulation_s
 # customisation of the process.
 
 # Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.combinedCustoms
-from SLHCUpgradeSimulations.Configuration.combinedCustoms import cust_20YEAR
+from SLHCUpgradeSimulations.Configuration.combinedCustoms import cust_2017, cust_2019
 
-#call to customisation function cust_2017 imported from SLHCUpgradeSimulations.Configuration.combinedCustoms
-process = cust_20YEAR(process)
+#call to customisation function cust_20YEAR imported from SLHCUpgradeSimulations.Configuration.combinedCustoms
+if cfgyear==17:
+    process = cust_2017(process)
+elif cfgyear==19:
+    process = cust_2019(process)
 
 # Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.aging
-from SLHCUpgradeSimulations.Configuration.aging import ageHcal, ageEcal, agePixel
+from SLHCUpgradeSimulations.Configuration.aging import ageHcal, ageEcal, turn_off_HE_aging
 
 #call to customisation functions
 process = ageHcal(process,LUMIDRK)
 process = ageEcal(process,LUMIDRK)
-#process = agePixel(process,LUMIDRK) #tbd
+
+if YEAR==21:
+    process = turn_off_HE_aging(process)
 
 #ECAL customizations
 if not hasattr(process.GlobalTag,'toGet'):
     process.GlobalTag.toGet=cms.VPSet()
 
 #globaltag conditions
-if LUMIDRK==50 or LUMIDRK==100:
-    process.GlobalTag.toGet = cms.VPSet(
+if LUMIDRK==100:
+    process.GlobalTag.toGet.extend([
         cms.PSet(record = cms.string("EcalTPGLinearizationConstRcd"),
-                 tag = cms.string("EcalTPGLinearizationConst_TLLUMIDRK_ILINSTLUMI%s_mc"%("_v1" if LUMIDRK==100 else "")),
+                 tag = cms.string("EcalTPGLinearizationConst_TLLUMIDRK_ILINSTLUMI_v1_mc"),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
                  ),
         cms.PSet(record = cms.string("EcalIntercalibConstantsRcd"),
@@ -154,13 +164,42 @@ if LUMIDRK==50 or LUMIDRK==100:
                  tag = cms.string("EcalSRSettings_TLLUMIDRK_mc"),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
                  )
-    )
+    ])
 elif LUMIDRK==500:
-    process.GlobalTag.toGet = cms.VPSet(
+    process.GlobalTag.toGet.extend([
     	cms.PSet(record = cms.string("EcalSRSettingsRcd"),
                  tag = cms.string("EcalSRSettings_TLLUMIDRK_mc"),
                  connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
-                 )
-    )
+                 ),
+        cms.PSet(record = cms.string("EcalTPGLinearizationConstRcd"),
+                 tag = cms.string("EcalTPGLinearizationConst_TLLUMIDRK_ILINSTLUMI_v2_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_34X_ECAL")
+                 ),
+        cms.PSet(record = cms.string("EcalIntercalibConstantsRcd"),
+                 tag = cms.string("EcalIntercalibConstants_TLLUMIDRK_ILINSTLUMI_v2_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_31X_ECAL")
+                 ),
+    ])
 
+#disable strip tracker aging
+if LUMIDRK>0:
+    process.GlobalTag.toGet.extend([
+        cms.PSet(record = cms.string("SiStripApvGainRcd"),
+                 tag = cms.string("SiStripApvGain_RealisticMC_v2_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_31X_STRIP")
+                 ),
+        cms.PSet(record = cms.string("SiStripApvGainSimRcd"),
+                 tag = cms.string("SiStripApvGain_RealisticMCSim_v3_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_31X_STRIP")
+                 ),
+        cms.PSet(record = cms.string("SiStripBadModuleRcd"),
+                 tag = cms.string("SiStripBadModule_Ideal_31X_v2"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_31X_STRIP")
+                 ),
+        cms.PSet(record = cms.string("SiStripNoisesRcd"),
+                 tag = cms.string("SiStripNoise_DecoMode_TickCorr_v1_mc"),
+                 connect = cms.untracked.string("frontier://FrontierProd/CMS_COND_31X_STRIP")
+                 ),
+    ])
+    
 # End of customisation functions
