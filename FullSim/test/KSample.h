@@ -27,7 +27,7 @@
 
 using namespace std;
 
-enum qty { None=0, Algo=1, Year=2, Lumi=3, Eta=4, qtySize=5 };
+enum qty { None=0, Algo=1, Year=2, Lumi=3, Eta=4, Extra=5, qtySize=6 };
 enum alg { Reco=0, Calo=1, PF=2 };
 
 //-----------------------------------------------------------------------------------------
@@ -35,8 +35,8 @@ enum alg { Reco=0, Calo=1, PF=2 };
 class KSample {
 	public:
 		//constructor
-		KSample(TFile* file, alg algo_, int year_, double lumi_, double etamin_, double etamax_, Color_t color_=kBlack) :
-			algo(algo_), year(year_), lumi(lumi_), etamin(etamin_), etamax(etamax_), eta((etamin+etamax)/2), color(color_),
+		KSample(TFile* file, alg algo_, int year_, double lumi_, double etamin_, double etamax_, string extra_="", Color_t color_=kBlack) :
+			algo(algo_), year(year_), lumi(lumi_), etamin(etamin_), etamax(etamax_), eta((etamin+etamax)/2), extra(extra_), color(color_),
 			legnames(qtySize,""), printnames(qtySize,""), cutname(""), printname(""),
 			hist(NULL), gfit(NULL), mean(0), meanE(0), rms(0), rmsE(0), Nevents(0), mu(0), muE(0), sigma(0), sigmaE(0), chi2ndf(0),
 			reso(0), resoE(0), reso_fit(0), resoE_fit(0)
@@ -69,6 +69,9 @@ class KSample {
 			ss << "eta" << etamin << "to" << etamax;
 			printnames[Eta] = ss.str();
 			printname += "_" + printnames[Eta];
+			
+			legnames[Extra] = extra;
+			printnames[Extra] = extra;
 			
 			//create cut
 			ss.str(string());
@@ -156,6 +159,7 @@ class KSample {
 		alg algo;
 		int year;
 		double lumi, etamin, etamax, eta;
+		string extra;
 		Color_t color;
 		vector<string> legnames, printnames;
 		string printname, cutname;
@@ -191,6 +195,7 @@ class KGroup {
 				case Year: return s1->year==s2->year;
 				case Lumi: return s1->lumi==s2->lumi;
 				case Eta:  return s1->etamin==s2->etamin && s1->etamax==s2->etamax;
+				case Extra: return s1->extra==s2->extra;
 				default:   return true;
 			}
 		}
