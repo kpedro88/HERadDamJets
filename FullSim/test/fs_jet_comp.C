@@ -92,46 +92,36 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 		}
 	}
 	else if(plotset==2){
-		//calo and PF overlay, low and high eta, limited lumi
+		//calo and PF overlay, low and high eta, lumi 0
 		KGroup* group = NULL;
 		
 		for(int y = 0; y <= 1; y++){
-			for(int Lnum = 0; Lnum < maxHDlumi; Lnum++){
-				//only 0, 150, 300
-				if(lumis[Lnum]!=0 && lumis[Lnum]!=150 && lumis[Lnum]!=300) continue;
-				
 				//low eta
 				group = new KGroup();
-				group->push_back(new KSample(file,Calo,years[y],lumis[Lnum],etas4[0],etas4[1],"",colors[0]));
-				group->push_back(new KSample(file,PF,years[y],lumis[Lnum],etas4[0],etas4[1],"",colors[1]));
+				group->push_back(new KSample(file,Calo,years[y],0,etas4[0],etas4[1],"",colors[0]));
+				group->push_back(new KSample(file,PF,years[y],0,etas4[0],etas4[1],"",colors[1]));
 				KDraw::DrawOverlay(group,print,psuff,pdir);
 				
 				//high eta
 				group = new KGroup();
-				group->push_back(new KSample(file,Calo,years[y],lumis[Lnum],etas4[3],etas4[4],"",colors[0]));
-				group->push_back(new KSample(file,PF,years[y],lumis[Lnum],etas4[3],etas4[4],"",colors[1]));
+				group->push_back(new KSample(file,Calo,years[y],0,etas4[3],etas4[4],"",colors[0]));
+				group->push_back(new KSample(file,PF,years[y],0,etas4[3],etas4[4],"",colors[1]));
 				KDraw::DrawOverlay(group,print,psuff,pdir);
-			}
 		}
 	}
 	else if(plotset==3){
-		//calo and PF reso on same plot
+		//calo and PF reso on same plot, lumi 0
 		for(int y = 0; y <= 1; y++){
-			for(int Lnum = 0; Lnum < maxHDlumi; Lnum++){
-				//only 0, 150, 300
-				if(lumis[Lnum]!=0 && lumis[Lnum]!=150 && lumis[Lnum]!=300) continue;
-				
-				vector<KGroup*> groups;
-				for(int a = 1; a <= 2; a++){
-					KGroup* group = new KGroup(colors[a-1]);
-					for(int ieta = 0; ieta < 8; ieta++){
-						group->push_back(new KSample(file,(alg)a,years[y],lumis[Lnum],etas8[ieta],etas8[ieta+1]));
-					}
-					groups.push_back(group);
+			vector<KGroup*> groups;
+			for(int a = 1; a <= 2; a++){
+				KGroup* group = new KGroup(colors[a-1]);
+				for(int ieta = 0; ieta < 8; ieta++){
+					group->push_back(new KSample(file,(alg)a,years[y],0,etas8[ieta],etas8[ieta+1]));
 				}
-
-				KDraw::DrawResolution(groups,1,print,psuff,pdir);
+				groups.push_back(group);
 			}
+
+			KDraw::DrawResolution(groups,1,print,psuff,pdir);
 		}
 	}
 	else if(plotset==4){

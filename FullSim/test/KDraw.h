@@ -3,10 +3,30 @@
 
 //custom headers
 #include "KSample.h"
+#include "Analysis/KCode/KMap.h"
+#include "Analysis/KCode/KLegend.h"
+#include "Analysis/KCode/KPlot.h"
 
 using namespace std;
 
 namespace KDraw{
+
+//--------------------------------------------------
+//functions to initialize common drawing options
+OptionMap* initGlobalOpt(){
+	OptionMap* globalOpt = new OptionMap();
+	globalOpt->Set<string>("prelim_text","Simulation (preliminary)");
+	globalOpt->Set<string>("lumi_text","14 TeV, PU = 0");
+	globalOpt->Set<bool>("checkerr",false);
+	globalOpt->Set<double>("canvasH",475);
+	return globalOpt;
+}
+OptionMap* initLocalOpt(){
+	OptionMap* localOpt = new OptionMap();
+	localOpt->Set<bool>("ratio",false);
+	localOpt->Set<bool>("logy",false);
+	return localOpt;
+}
 
 //--------------------------------------------------
 //function to draw response histo overlays
@@ -29,75 +49,73 @@ void DrawOverlay(KGroup* group, bool print=false, string psuff="png", string pdi
 		string varied = group->GetVariedPrint(s);
 		if(varied.size()>0) oname += "__" + varied;
 	}
-	//todo: include varied print names afterward?
-	
-	//make canvas
-	TCanvas* can = new TCanvas(oname.c_str(),oname.c_str(),700,500);
-	can->cd();
 	
 	//get preamble text
 	vector<string> preamble = group->GetCommonDescList();
 	//preamble.insert(preamble.begin(),"p_{T}^{Gen} > 10 GeV");
 	preamble.insert(preamble.begin(),"#hat{p}_{T} = 30 GeV");
+
+	//make plot options
+	OptionMap* globalOpt = initGlobalOpt();
+	globalOpt->Set<vector<string> >("extra_text",preamble);
+	OptionMap* localOpt = initLocalOpt();
 	
-	//make legend
-	int legheight = 0;
-	if(group->samples.size()>1) legheight = group->samples.size()+preamble.size();
-	else legheight = 4+preamble.size();
-	//TLegend* leg = new TLegend(0.65,0.9,0.9,0.9-0.05*(group->samples.size()+preamble.size()));
-	TLegend* leg = new TLegend(0.18,0.93,0.43,0.93-0.05*legheight);
+	//make plot
+	KPlot* plot = new KPlot(oname,localOpt,globalOpt);
+	plot->Initialize(hbase);
+	KLegend* kleg = plot->GetLegend();
+	TCanvas* can = plot->GetCanvas();
+	TPad* pad1 = plot->GetPad1();
+	pad1->cd();
+
+	//fit text
+	std::stringstream resoname, resofitname, Nname, chiname;
+	Nname << "N = " << group->samples[0]->Nevents;
+	resoname.precision(3); resoname << fixed << "RMS/Mean = " << group->samples[0]->reso << " #pm " << group->samples[0]->resoE;
+	resofitname.precision(3); resofitname << fixed << "#sigma/#mu = " << group->samples[0]->reso_fit << " #pm " << group->samples[0]->resoE_fit;
+	chiname.precision(5); chiname << fixed << "#chi^{2}/ndf = " << group->samples[0]->chi2ndf;	
 	
-	//add preamble text to legend
-	for(int p = 0; p < preamble.size(); p++){
-		leg->AddEntry((TObject*)NULL,preamble[p].c_str(),"");
-	}
-	
-	//normalize and find highest peak
-	if(group->samples.size()>1){
-		double ymax = 0;
-		for(int s = 0; s < group->samples.size(); s++){
+	//first loop for setup
+	for(int s = 0; s < group->samples.size(); s++){
+		//formatting
+		group->samples[s]->hist->SetLineWidth(2);
+		//scale to unit area - only for overlaying, interferes with fit for some reason
+		if(group->samples.size()>1) {
 			group->samples[s]->hist->Scale(1.0/group->samples[s]->hist->Integral(1,group->samples[s]->hist->GetNbinsX()));
-			if(ymax < group->samples[s]->hist->GetMaximum()) ymax = group->samples[s]->hist->GetMaximum();
+			//add sample to legend based on non-common cuts with group
+			kleg->AddEntry(group->samples[s]->hist,group->GetVariedDesc(s),"l");
 		}
-		hbase->GetYaxis()->SetRangeUser(0,ymax*1.1);
+		
+		//if only one sample, display fit info
+		else {
+			kleg->AddHist(group->samples[s]->hist);
+			kleg->AddEntry((TObject*)NULL,Nname.str(),"");
+			kleg->AddEntry((TObject*)NULL,resoname.str(),"");
+			kleg->AddEntry((TObject*)NULL,resofitname.str(),"");
+			kleg->AddEntry((TObject*)NULL,chiname.str(),"");
+		}
 	}
-	
-	//draw base
-	hbase->Draw("hist");
+
+	//build legend
+	kleg->Build(KLegend::left);
+
+	//draw blank histo for axes
+	plot->DrawHist();
 	
 	//draw samples
 	for(int s = 0; s < group->samples.size(); s++){
-		//scale to unit area - only for overlaying, interferes with fit for some reason
-		if(group->samples.size()>1) group->samples[s]->hist->Scale(1.0/group->samples[s]->hist->Integral(1,group->samples[s]->hist->GetNbinsX()));
 		group->samples[s]->hist->Draw("hist same");
 		
-		//add sample to legend based on non-common cuts with group
-		if(group->samples.size()>1) leg->AddEntry(group->samples[s]->hist,group->GetVariedDesc(s).c_str(),"l");
 		//if only one sample, plot the fit as well
-		else {
-			std::stringstream resoname, resofitname, Nname, chiname;
-			Nname << "N = " << group->samples[s]->Nevents;
-			resoname.precision(3); resoname << fixed << "RMS/Mean = " << group->samples[s]->reso << " #pm " << group->samples[s]->resoE;
-			resofitname.precision(3); resofitname << fixed << "#sigma/#mu = " << group->samples[s]->reso_fit << " #pm " << group->samples[s]->resoE_fit;
-			chiname.precision(5); chiname << fixed << "#chi^{2}/ndf = " << group->samples[s]->chi2ndf;
-			leg->AddEntry((TObject*)NULL,(Nname.str()).c_str(),"");
-			leg->AddEntry((TObject*)NULL,(resoname.str()).c_str(),"");
-			leg->AddEntry((TObject*)NULL,(resofitname.str()).c_str(),"");
-			leg->AddEntry((TObject*)NULL,(chiname.str()).c_str(),"");
-			
+		if(group->samples.size()==1) {
 			group->samples[s]->gfit->SetLineWidth(2);
 			group->samples[s]->gfit->SetLineColor(kRed);
 			group->samples[s]->gfit->SetLineStyle(2);
 			group->samples[s]->gfit->Draw("same");
 		}
 	}
-	
-	//legend formatting
-	leg->SetFillColor(0);
-	leg->SetBorderSize(0);
-	leg->SetTextSize(0.05);
-	leg->SetTextFont(42);
-	leg->Draw("same");
+	plot->GetHisto()->Draw("sameaxis"); //draw again so axes on top
+	plot->DrawText();
 	
 	if(print){
 		can->Print((pdir+"/"+oname+"."+psuff).c_str(),psuff.c_str());
@@ -155,10 +173,6 @@ void DrawResolution(vector<KGroup*> groups, bool fit=true, bool print=false, str
 	}
 	//todo: add "string extra" param to fn, to get eta bin info etc.?
 
-	//make canvas
-	TCanvas* can = new TCanvas(oname.c_str(),oname.c_str(),700,500);
-	can->cd();
-	
 	//create base histo for drawing axes
 	TH1F* hbase = new TH1F("hbase","",100,groups[0]->graph->GetXaxis()->GetXmin(),groups[0]->graph->GetXaxis()->GetXmax());
 	hbase->GetXaxis()->SetTitle(groups[0]->graph->GetXaxis()->GetTitle());
@@ -169,35 +183,38 @@ void DrawResolution(vector<KGroup*> groups, bool fit=true, bool print=false, str
 	vector<string> preamble = supergroup->GetCommonDescList();
 	//preamble.insert(preamble.begin(),"p_{T}^{Gen} > 10 GeV");
 	preamble.insert(preamble.begin(),"#hat{p}_{T} = 30 GeV");
+
+	//make plot options
+	OptionMap* globalOpt = initGlobalOpt();
+	globalOpt->Set<vector<string> >("extra_text",preamble);
+	OptionMap* localOpt = initLocalOpt();
 	
-	//make legend
-	int legheight = 0;
-	legheight = groups.size()+preamble.size();
-	//TLegend* leg = new TLegend(0.65,0.9,0.9,0.9-0.05*(group->samples.size()+preamble.size()));
-	TLegend* leg = new TLegend(0.18,0.93,0.48,0.93-0.05*legheight);
+	//make plot
+	KPlot* plot = new KPlot(oname,localOpt,globalOpt);
+	plot->Initialize(hbase);
+	KLegend* kleg = plot->GetLegend();
+	TCanvas* can = plot->GetCanvas();
+	TPad* pad1 = plot->GetPad1();
+	pad1->cd();
 	
-	//add preamble text to legend
-	for(int p = 0; p < preamble.size(); p++){
-		leg->AddEntry((TObject*)NULL,preamble[p].c_str(),"");
-	}
-	
-	//draw base
-	hbase->Draw("hist");
+	//draw blank histo for axes
+	plot->DrawHist();
 	
 	//draw groups
 	for(int g = 0; g < groups.size(); g++){
 		groups[g]->graph->Draw("pe same");
 		//add group to legend based on common cuts
-		//leg->AddEntry(groups[g]->graph,groups[g]->GetCommonDesc().c_str(),"pe"); //"e" option has wrong color until ROOT 5.34.11
-		leg->AddEntry(groups[g]->graph,groups[g]->GetCommonDesc().c_str(),"p");
+		//kleg->AddEntry(groups[g]->graph,groups[g]->GetCommonDesc(),"pe"); //"e" option has wrong color until ROOT 5.34.11
+		kleg->AddEntry(groups[g]->graph,groups[g]->GetCommonDesc(),"p");
 	}
-	
-	//legend formatting
-	leg->SetFillColor(0);
-	leg->SetBorderSize(0);
-	leg->SetTextSize(0.05);
-	leg->SetTextFont(42);
-	leg->Draw("same");
+
+	//build legend
+	kleg->AddHist(hbase); //for tick sizes
+	kleg->Build(KLegend::left,KLegend::top);
+
+	//finish drawing
+	plot->GetHisto()->Draw("sameaxis"); //draw again so axes on top
+	plot->DrawText();
 	
 	if(print){
 		can->Print((pdir+"/"+oname+"."+psuff).c_str(),psuff.c_str());
