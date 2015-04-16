@@ -2,6 +2,11 @@
 #include "KSample.h"
 #include "KDraw.h"
 
+//STL headers
+#include <string>
+#include <iostream>
+#include <iomanip>
+
 #define maxHDlumi 5
 #define maxHDyear 3
 #define maxHDcolor 8
@@ -127,6 +132,7 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 	else if(plotset==4){
 		//HPD and SiPM reso on same plot, single algo (split into low and high lumis)
 		double themarkers[] = {20, 23, 22}; //for 2017, 2019, 2021
+		bool do_fit = true;
 		
 		for(int a = 1; a <= 2; a++){
 			vector<KGroup*> groups_low;
@@ -140,7 +146,7 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 				}
 			}
 			
-			KDraw::DrawResolution(groups_low,1,print,psuff,pdir);
+			KDraw::DrawResolution(groups_low,do_fit,print,psuff,pdir);
 			
 			vector<KGroup*> groups_high;
 			for(int Lnum = 2; Lnum <= 4; Lnum++){				
@@ -153,7 +159,59 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 				}
 			}
 			
-			KDraw::DrawResolution(groups_high,1,print,psuff,pdir);
+			KDraw::DrawResolution(groups_high,do_fit,print,psuff,pdir);
+		}
+	}
+	else if(plotset==5){
+		//HPD and SiPM reso on same plot, single algo (split into low and high lumis)
+		// -> just print ratio of resolutions, no plotting
+		double themarkers[] = {20, 23, 22}; //for 2017, 2019, 2021
+		bool do_fit = true;
+		
+		for(int a = 1; a <= 2; a++){
+			for(int y = 0; y <= 1; y++){
+				vector<KGroup*> groups_low;
+				for(int Lnum = 0; Lnum <= 2; Lnum++){
+					KGroup* group = new KGroup(colors[Lnum],themarkers[y]);
+					for(int ieta = 0; ieta < 8; ieta++){
+						group->push_back(new KSample(file,(alg)a,years[y],lumis[Lnum],etas8[ieta],etas8[ieta+1]));
+					}
+					groups_low.push_back(group);
+					groups_low.back()->MakeGraph(do_fit);
+					//print ratio of resolutions
+					if(groups_low.size()>1){
+						double* y_old = groups_low[0]->graph->GetY();
+						double* y_new = groups_low.back()->graph->GetY();
+						cout << groups_low[0]->GetDesc(0,Algo,true,true) << ", " << years[y] << ", (" << lumis[Lnum] << " fb-1)/(" << lumis[0] << " fb-1):" << endl;
+						for(int i = 0; i < groups_low[0]->graph->GetN(); i++){
+							cout << fixed << setprecision(0) << (y_new[i]/y_old[i]-1)*100 << ", ";
+						}
+						cout << endl;
+					}
+				}
+			}
+			
+			for(int y = 1; y <= 2; y++){
+				vector<KGroup*> groups_high;
+				for(int Lnum = 2; Lnum <= 4; Lnum++){
+					KGroup* group = new KGroup(colors[Lnum],themarkers[y]);
+					for(int ieta = 0; ieta < 8; ieta++){
+						group->push_back(new KSample(file,(alg)a,years[y],lumis[Lnum],etas8[ieta],etas8[ieta+1]));
+					}
+					groups_high.push_back(group);
+					groups_high.back()->MakeGraph(do_fit);
+					//print ratio of resolutions
+					if(groups_high.size()>1){
+						double* y_old = groups_high[0]->graph->GetY();
+						double* y_new = groups_high.back()->graph->GetY();
+						cout << groups_high[0]->GetDesc(0,Algo,true,true) << ", " << years[y] << ", (" << lumis[Lnum] << " fb-1)/(" << lumis[2] << " fb-1):" << endl;
+						for(int i = 0; i < groups_high[0]->graph->GetN(); i++){
+							cout << fixed << setprecision(0) << (y_new[i]/y_old[i]-1)*100 << ", ";
+						}
+						cout << endl;
+					}
+				}
+			}
 		}
 	}
 	

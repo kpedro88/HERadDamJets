@@ -81,7 +81,7 @@ class KSample {
 			
 			//create response histogram
 			hist = new TH1F("hres","",50,0.0,2.0);
-			hist->GetXaxis()->SetTitle("p_{T}^{RECO}/p_{T}^{GEN}");
+			hist->GetXaxis()->SetTitle("p_{T}^{RECO}/^{}p_{T}^{GEN}");
 			hist->GetYaxis()->SetTitle("1/N#times#partialN/#partialR");
 			hist->SetLineWidth(2);
 			hist->SetLineColor(color);
@@ -258,9 +258,10 @@ class KGroup {
 				ye[s] = samples[s]->GetResoErr(fit);
 			}
 			
+			if(graph) delete graph;
 			graph = new TGraphErrors(samples.size(),x,y,NULL,ye);
-			if(fit) graph->GetYaxis()->SetTitle("#sigma(p_{T}^{RECO}/p_{T}^{GEN})/#mu(p_{T}^{RECO}/p_{T}^{GEN})");
-			else graph->GetYaxis()->SetTitle("RMS(p_{T}^{RECO}/p_{T}^{GEN})/#LTp_{T}^{RECO}/p_{T}^{GEN}#GT");
+			if(fit) graph->GetYaxis()->SetTitle("#sigma(^{}p_{T}^{RECO}/^{}p_{T}^{GEN})/#mu(^{}p_{T}^{RECO}/^{}p_{T}^{GEN})");
+			else graph->GetYaxis()->SetTitle("RMS(^{}p_{T}^{RECO}/^{}p_{T}^{GEN})/#LT^{}p_{T}^{RECO}/^{}p_{T}^{GEN}#GT");
 			switch((qty)q_varied){
 				case Algo: graph->GetXaxis()->SetTitle("Algorithm"); break;
 				case Year: graph->GetXaxis()->SetTitle("Year"); break;
