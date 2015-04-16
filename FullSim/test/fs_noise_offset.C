@@ -1,3 +1,8 @@
+//custom headers
+#include "Analysis/KCode/KMap.h"
+#include "Analysis/KCode/KLegend.h"
+#include "Analysis/KCode/KPlot.h"
+
 //ROOT headers
 #include <TROOT.h>
 #include <TStyle.h>
@@ -27,16 +32,17 @@
 
 #define maxHDe 1
 #define maxHDlumi 6
-#define maxHDeta 60
+#define maxHDeta 62
+#define maxHDabseta 11
 #define maxPrint 2
 
 using namespace std;
 
 //global variables
-string fdir = "root://cmseos.fnal.gov//store/user/pedrok/raddam/tree";
+string fdir = "root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1";
 Double_t energies[] = {30};
 Double_t lumis[] = {0, 50, 100, 150, 300, 500};
-Double_t binseta[] ={-3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172,
+Double_t binseta[] ={-4.0, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172,
 					 -2.043, -1.930, -1.830, -1.740, -1.653, -1.566, -1.479, -1.392, -1.305,
 					 -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522,
 					 -0.435, -0.348, -0.261, -0.174, -0.087,
@@ -44,18 +50,46 @@ Double_t binseta[] ={-3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172,
 					 +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783,
 					 +0.879, +0.957, +1.044, +1.131, +1.218, +1.305, +1.392, +1.479, +1.566,
 					 +1.653, +1.740, +1.830, +1.930, +2.043, +2.172, +2.322, +2.500, +2.650,
-					 +2.853, +2.964, +3.139};
+					 +2.853, +2.964, +3.139, +4.0};
+Double_t binsabseta[] ={
+                        +1.653, +1.740, +1.830, +1.930, +2.043, +2.172, +2.322, +2.500, +2.650,
+                        +2.853, +2.964, +3.139};
+
 Int_t years[] = {2017, 2019};
 
 //NB: in this file, "energies" refers to pT
 
+//--------------------------------------------------
+//functions to initialize common drawing options
+OptionMap* initGlobalOpt(){
+	OptionMap* globalOpt = new OptionMap();
+	globalOpt->Set<string>("prelim_text","Simulation (preliminary)");
+	globalOpt->Set<string>("lumi_text","14 TeV, PU = 0");
+	globalOpt->Set<bool>("checkerr",false);
+	globalOpt->Set<double>("canvasH",475);
+	globalOpt->Set<double>("marginL",120);
+	globalOpt->Set<double>("NdivX",510);
+	return globalOpt;
+}
+OptionMap* initLocalOpt(){
+	OptionMap* localOpt = new OptionMap();
+	localOpt->Set<bool>("ratio",false);
+	localOpt->Set<bool>("logy",false);
+	return localOpt;
+}
+
 //-------------------------------------------------------------------
 //function to get mean noise from calotowers or PF candidates vs .eta
-TProfile* get_noise(string algo, Int_t year, Double_t energy, Double_t lumi, bool do_show, unsigned do_print=0){
+TProfile* get_noise(string algo, Int_t year, Double_t energy, Double_t lumi, bool do_abseta=false, bool do_monojet=false, bool do_method0=false, unsigned do_print=0){
 	//make filenames
 	stringstream pname, fname, luminame;
 
-	pname << "noise_" << year << "_pt" << energy << "_lumi" << lumi;
+	pname << "noise_";
+	if(do_monojet){
+		pname << "monojet_";
+		if(do_method0) pname << "method0_";
+	}
+	pname << year << "_pt" << energy << "_lumi" << lumi;
 	fname << fdir << "/tree_" << pname.str() << ".root";
 	luminame << "lumi = " << lumi << " fb^{-1}";
 
@@ -66,57 +100,17 @@ TProfile* get_noise(string algo, Int_t year, Double_t energy, Double_t lumi, boo
 		cout << "File does not exist: " << fname.str() << endl;
 		return NULL;
 	}
-	TProfile* hprof = new TProfile(("prof_"+pname.str()).c_str(), "", maxHDeta, binseta);
+	TProfile* hprof;
+	if(do_abseta) hprof = new TProfile(("prof_"+pname.str()).c_str(), "", maxHDabseta, binsabseta);
+	else hprof = new TProfile(("prof_"+pname.str()).c_str(), "", maxHDeta, binseta);
 	TTree* totalTree = (TTree*)_file->Get("Total");
 
-	std::stringstream drawname, cutname;
+	stringstream drawname, cutname;
 	drawname << "(" << algo << "NoisePt/(TMath::Pi()*0.5^2)):GenJetEta>>" << hprof->GetName();
 	totalTree->Draw((drawname.str()).c_str(),"","hist goff");
 
-	//plotting variables
-	TCanvas* can;
-	TPaveText* pave;
-
-	std::string yrnames[] = {"HPDs","SiPMs"};
-
-	//plotting
-	if (do_show){
-		std::stringstream oname;
-		oname << algo << "_noise_offset_" << year << "_pt" << energy << "_lumi" << lumi;
-		can = new TCanvas((oname.str()).c_str(),(oname.str()).c_str(),700,500);
-		can->cd();	
-		
-		//plot profile
-		hprof->GetXaxis()->SetTitle("#eta");
-		hprof->GetYaxis()->SetTitle(("#LTp_{T}^{"+algo+"}(offset)#GT/area [GeV]").c_str());
-		hprof->SetLineColor(kBlack);
-		hprof->SetMarkerColor(kBlack);
-		hprof->Draw("PE");
-
-		//determine placing of legend and pave
-		Double_t xmin = 0.7;
-		
-		//pave
-		pave = new TPaveText(xmin,0.68,xmin+0.2,0.78,"NDC");
-		pave->AddText((year==2017) ? yrnames[0].c_str() : yrnames[1].c_str());
-		pave->AddText((luminame.str()).c_str());
-		pave->SetFillColor(0);
-		pave->SetBorderSize(0);
-		pave->SetTextFont(42);
-		pave->SetTextSize(0.04);
-		pave->Draw("same");
-
-		if(do_print) {
-			if(do_print > maxPrint) do_print = 1; //png default
-			std::string img[maxPrint] = {"png","eps"};
-
-			can->Print((oname.str()+img[do_print-1]).c_str(),img[do_print-1].c_str());
-		}
-	}
-	else {
-		hprof->SetDirectory(0);
-		_file->Close();
-	}
+	hprof->SetDirectory(0);
+	_file->Close();
 	
 	//return profile
 	return hprof;
@@ -124,76 +118,105 @@ TProfile* get_noise(string algo, Int_t year, Double_t energy, Double_t lumi, boo
 
 //--------------------------------------------------------
 //function to plot offsets for all lumis on same pad
-void plot_offsets(string algo, Int_t year, Double_t energy, unsigned do_print=0){
-	TProfile* graphs[maxHDlumi];
+void plot_offsets(string algo, Int_t year, Double_t energy, bool do_abseta=false, bool do_monojet=false, bool do_method0=false, unsigned do_print=0){
+	vector<TProfile*> graphs;
+	vector<string> luminames;
 	Double_t ymax = 0;
 	Double_t ymin = 1e10;
 	
 	for(int j = 0; j < maxHDlumi; j++){
+		if(do_abseta && lumis[j] != 0 && lumis[j] != 500) continue;
+		
 		//get graph from above function
-		graphs[j] = get_noise(algo,year,energy,lumis[j],0);
+		TProfile* gtmp = get_noise(algo,year,energy,lumis[j],do_abseta,do_monojet,do_method0);
+		if(gtmp) graphs.push_back(gtmp);
+		else continue;
+		
+		stringstream luminame;
+		luminame << lumis[j] << " fb^{-1}";
+		luminames.push_back(luminame.str());
 		
 		//check extrema
-		if(ymax < graphs[j]->GetMaximum()) ymax = graphs[j]->GetMaximum();
-		if(ymin > graphs[j]->GetMinimum()) ymin = graphs[j]->GetMinimum();
-		//cout << lumis[j] << "\t" << graphs[j]->GetMaximum() << endl;
+		if(ymax < graphs.back()->GetMaximum()) ymax = graphs.back()->GetMaximum();
+		if(ymin > graphs.back()->GetMinimum()) ymin = graphs.back()->GetMinimum();
 	}
 	//manual setting
 	ymin = 0;
+	
+	if(graphs.size()==0) return;
+	
+	//create base histo for drawing axes
+	TH1D* hbase = (TH1D*)graphs[0]->Clone("hbase");
+	hbase->Reset("M");
+	hbase->SetTitle("");
+	hbase->GetXaxis()->SetTitle("#eta");
+	hbase->GetYaxis()->SetTitle(("#LTp_{T}^{"+algo+"}(offset)#GT/area [GeV]").c_str());
 
-	//plotting variables
-	std::stringstream oname;
-	oname << algo << "_noise_offset_" << year << "_pt" << energy << "_lumis";
-	TCanvas* can = new TCanvas((oname.str()).c_str(),(oname.str()).c_str(),700,500);
-	TPad* pad1 = new TPad("graph","",0,0,1,1);
-	pad1->SetMargin(0.15,0.05,0.15,0.075);
-	pad1->SetTicks(1,1);
-	pad1->Draw();
+	//make canvas/print name
+	stringstream oname;
+	oname << algo << "_noise_offset_";
+	if(do_monojet){
+		oname << "monojet_";
+		if(do_method0) oname << "method0_";
+	}
+	if(do_abseta) oname << "abseta_";
+	oname << year << "_pt" << energy << "_lumis";
+
+	//get preamble text
+	vector<string> preamble;
+	string yrnames[] = {"HPDs","SiPMs"};
+	preamble.push_back((year==2017) ? yrnames[0] : yrnames[1]);
+	preamble.push_back(do_monojet ? "MonoJet" : "DiJet");
+	preamble.push_back(do_method0 ? "Method0" : "Method2");
+
+	//make plot options
+	OptionMap* globalOpt = initGlobalOpt();
+	globalOpt->Set<vector<string> >("extra_text",preamble);
+	OptionMap* localOpt = initLocalOpt();
+	
+	//make plot
+	KPlot* plot = new KPlot(oname.str(),localOpt,globalOpt);
+	plot->Initialize(hbase);
+	KLegend* kleg = plot->GetLegend();
+	TCanvas* can = plot->GetCanvas();
+	TPad* pad1 = plot->GetPad1();
 	pad1->cd();
 
-	std::string yrnames[] = {"HPDs","SiPMs"};
-	
-	std::stringstream luminames[maxHDlumi];
-	TLegend *leg = new TLegend(0.79,0.89-0.05*(maxHDlumi+1),0.93,0.89);
-	leg->SetFillColor(0);
-	leg->SetBorderSize(0);
-	leg->SetTextSize(0.05);
-	leg->SetTextFont(42);
-	leg->AddEntry((TObject*)NULL,(year==2017) ? yrnames[0].c_str() : yrnames[1].c_str(),"");
-	
 	Color_t colors[] = {kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta, kOrange+7, kYellow+3};
-	for(int j = 0; j < maxHDlumi; j++){
+
+	//first loop for setup
+	for(int j = 0; j < graphs.size(); j++){
 		//formatting
-		graphs[j]->SetTitle("");
-		graphs[j]->GetXaxis()->SetTitle("#eta");
-		graphs[j]->GetYaxis()->SetTitle(("#LTp_{T}^{"+algo+"}(offset)#GT/area [GeV]").c_str());
 		graphs[j]->SetLineColor(colors[j]);
 		graphs[j]->SetMarkerColor(colors[j]);
 		graphs[j]->SetMarkerStyle(20);
-		graphs[j]->GetYaxis()->SetRangeUser(ymin*0.9,ymax*1.1);
-		
-		//more formatting
-		graphs[j]->GetXaxis()->SetTitleOffset(0.95);
-		graphs[j]->GetYaxis()->SetTitleOffset(1.0);
-		graphs[j]->GetYaxis()->SetTitleSize(32/(pad1->GetWh()*pad1->GetAbsHNDC()));
-		graphs[j]->GetYaxis()->SetLabelSize(28/(pad1->GetWh()*pad1->GetAbsHNDC()));
-		graphs[j]->GetXaxis()->SetTitleSize(32/(pad1->GetWh()*pad1->GetAbsHNDC()));
-		graphs[j]->GetXaxis()->SetLabelSize(28/(pad1->GetWh()*pad1->GetAbsHNDC()));
-		graphs[j]->GetYaxis()->SetTickLength(12/(pad1->GetWh()*pad1->GetAbsHNDC()));
-		graphs[j]->GetXaxis()->SetTickLength(12/(pad1->GetWh()*pad1->GetAbsHNDC()));
 		
 		//add to legend
-		luminames[j] << lumis[j] << " fb^{-1}";
-		leg->AddEntry(graphs[j],(luminames[j].str()).c_str(),"pl");
-	
-		if(j==0) graphs[j]->Draw("PE");
-		else graphs[j]->Draw("PE same");
+		kleg->AddEntry(graphs[j],luminames[j],"p");
+		//kleg->AddEntry(graphs[j],luminames[j],"pe"); //doesn't work until ROOT v5.34.11
 	}
-	leg->Draw("same");
+	
+	//build legend
+	kleg->Build();
+
+	//draw blank histo for axes
+	plot->DrawHist();
+	
+	//turn off horizontal error bars
+	TExec* exec = new TExec("exec","gStyle->SetErrorX(0);");
+	exec->Draw();
+	
+	//draw plots
+	for(int j = 0; j < graphs.size(); j++){
+		graphs[j]->Draw("PE same");
+	}
+	
+	plot->GetHisto()->Draw("sameaxis"); //draw again so axes on top
+	plot->DrawText();
 	
 	if(do_print){
 		if(do_print > maxPrint) do_print = 1; //png default
-		std::string img[maxPrint] = {"png","eps"};
+		string img[maxPrint] = {"png","eps"};
 
 		can->Print((oname.str()+img[do_print-1]).c_str(),img[do_print-1].c_str());
 	}
