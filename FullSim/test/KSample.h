@@ -238,6 +238,7 @@ class KGroup {
 		//make resolution graph
 		void MakeGraph(bool fit){
 			//check for q automatically
+			q_varied = 0;
 			for(int q = 0; q < qtySize; q++){
 				if(!common[q]){
 					if(q_varied==0) q_varied = q;
