@@ -20,7 +20,7 @@ using namespace std;
 //creates samples, groups, plots
 void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdir="plots", TFile* file=NULL){
 	//open file
-	if(!file) file = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_pt30.root");
+	if(!file) file = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_pt30.root");
 	
 	Color_t colors[] = {kBlack, kBlue, kMagenta+2, kRed, kCyan+2, kMagenta, kOrange+7, kYellow+3};
 	
@@ -208,7 +208,33 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 			
 			KDraw::DrawResolution(groups,1,print,psuff,pdir);
 		}
-	}	
+	}
+	else if(plotset==8){
+		//raw monojets, method 0 vs method 2
+		double themarkers[] = {20, 23}; //for 2017, 2019
+		string methods[] = {"Method0", "Method2"};
+		double thelumis[] = {0, 500};
+		
+		TFile* file_monojet[2][2];
+		file_monojet[0][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_method0_2017_pt30_lumi0.root");
+		file_monojet[0][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_method0_2017_pt30_lumi500.root");
+		file_monojet[1][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_2017_pt30_lumi0.root");
+		file_monojet[1][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_2017_pt30_lumi500.root");
+
+
+		for(int Lnum = 0; Lnum < 2; Lnum++){
+			for(int ieta = 0; ieta < 4; ieta++){
+				KGroup* group = new KGroup();
+
+				for(int m = 0; m <= 1; m++){
+					group->push_back(new KSample(file_monojet[m][Lnum],PF,2017,thelumis[Lnum],etas4[ieta],etas4[ieta+1],methods[m],colors[m]));
+				}
+
+				KDraw::DrawOverlay(group,print,psuff,pdir);
+			}
+		}
+
+	}
 	
 	/*
 	KGroup* group = new KGroup();
