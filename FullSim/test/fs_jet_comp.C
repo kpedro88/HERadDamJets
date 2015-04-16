@@ -140,11 +140,11 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 		for(int a = 1; a <= 2; a++){
 			vector<KGroup*> groups;
 			TFile* file_L1[2];
-			file_L1[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_2017_pt30_lumi500.root");
-			file_L1[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_2019_pt30_lumi500.root");
+			file_L1[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_2017_pt30_lumi500.root");
+			file_L1[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_2019_pt30_lumi500.root");
 			TFile* file_noL1[2];
-			file_noL1[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_noL1_2017_pt30_lumi500.root");
-			file_noL1[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_noL1_2019_pt30_lumi500.root");
+			file_noL1[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_noL1_2017_pt30_lumi500.root");
+			file_noL1[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_noL1_2019_pt30_lumi500.root");
 			
 			for(int y = 0; y <= 1; y++){
 				KGroup* group_L1 = new KGroup(kBlack,themarkers[y]);
@@ -167,8 +167,8 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 		for(int a = 1; a <= 2; a++){
 			vector<KGroup*> groups;
 			TFile* file_xaged[2];
-			file_xaged[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_calaged_2017_pt30_lumi500.root");
-			file_xaged[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_jet_allaged_2017_pt30_lumi500.root");
+			file_xaged[0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_calaged_2017_pt30_lumi500.root");
+			file_xaged[1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_jet_allaged_2017_pt30_lumi500.root");
 			
 			KGroup* group_calaged = new KGroup(kBlack,themarkers[0]);
 			KGroup* group_allaged = new KGroup(kBlue,themarkers[1]);
@@ -189,10 +189,10 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 		double thelumis[] = {0, 500};
 		
 		TFile* file_monojet[2][2];
-		file_monojet[0][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_monojet_raw_method0_2017_pt30_lumi0.root");
-		file_monojet[0][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_monojet_raw_method0_2017_pt30_lumi500.root");
-		file_monojet[1][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_monojet_raw_2017_pt30_lumi0.root");
-		file_monojet[1][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree/tree_monojet_raw_2017_pt30_lumi500.root");
+		file_monojet[0][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_method0_2017_pt30_lumi0.root");
+		file_monojet[0][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_method0_2017_pt30_lumi500.root");
+		file_monojet[1][0] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_2017_pt30_lumi0.root");
+		file_monojet[1][1] = TFile::Open("root://cmseos.fnal.gov//store/user/pedrok/raddam/tree-v1/tree_monojet_raw_2017_pt30_lumi500.root");
 		
 		for(int a = 1; a <= 2; a++){
 			vector<KGroup*> groups;
