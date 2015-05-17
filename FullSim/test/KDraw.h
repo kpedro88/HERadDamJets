@@ -60,6 +60,15 @@ void DrawOverlay(KGroup* group, bool print=false, string psuff="png", string pdi
 	globalOpt->Set<vector<string> >("extra_text",preamble);
 	OptionMap* localOpt = initLocalOpt();
 	
+	//change legend options for case of 1 sample
+	if(group->samples.size()==1){
+		globalOpt->Set<int>("npanel",2);
+		globalOpt->Set<bool>("balance_panels",0);
+		vector<int> extra_text_panels(preamble.size(),0);
+		globalOpt->Set<vector<int> >("extra_text_panels",extra_text_panels);
+		globalOpt->Set<double>("sizeLeg",22);
+	}
+	
 	//make plot
 	KPlot* plot = new KPlot(oname,localOpt,globalOpt);
 	plot->Initialize(hbase);
@@ -89,10 +98,10 @@ void DrawOverlay(KGroup* group, bool print=false, string psuff="png", string pdi
 		//if only one sample, display fit info
 		else {
 			kleg->AddHist(group->samples[s]->hist);
-			kleg->AddEntry((TObject*)NULL,Nname.str(),"");
-			kleg->AddEntry((TObject*)NULL,resoname.str(),"");
-			kleg->AddEntry((TObject*)NULL,resofitname.str(),"");
-			kleg->AddEntry((TObject*)NULL,chiname.str(),"");
+			kleg->AddEntry((TObject*)NULL,Nname.str(),"",1);
+			kleg->AddEntry((TObject*)NULL,resoname.str(),"",1);
+			kleg->AddEntry((TObject*)NULL,resofitname.str(),"",1);
+			kleg->AddEntry((TObject*)NULL,chiname.str(),"",1);
 		}
 	}
 

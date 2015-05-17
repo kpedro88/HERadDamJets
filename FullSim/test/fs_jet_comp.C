@@ -214,6 +214,13 @@ void fs_jet_comp(int plotset=0, bool print=false, string psuff="png", string pdi
 			}
 		}
 	}
+	else if(plotset==100){
+		//quick plot of response from eta 1.3 to 1.7
+		KGroup* group = new KGroup();
+		group->push_back(new KSample(file,PF,2019,0,1.3,1.7,"",kBlack));
+
+		KDraw::DrawOverlay(group,print,psuff,pdir);
+	}
 	
 	/*
 	KGroup* group = new KGroup();
