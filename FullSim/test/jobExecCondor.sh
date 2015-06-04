@@ -32,7 +32,11 @@ cmsRun ${JOBNAME}.py 2>&1
 
 # copy output to eos
 echo "xrdcp output for condor"
-xrdcp -f *.root ${OUTDIR}/
-rm *.root
+for FILE in *.root
+  do
+    xrdcp -f ${FILE} ${OUTDIR}/
+    rm ${FILE}
+  done
+
 
 
